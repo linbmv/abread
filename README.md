@@ -1,6 +1,6 @@
-# 读经管理系统 (Bible Reading Tracker)
+# AWCA - 泛亚中文读经管理系统
 
-这是一个根据 `project.md` 规范重构的现代化读经管理系统。项目采用 Vue 3 作为前端框架，并支持 Vercel Serverless 和 Docker 两种后端部署方式。
+一个基于Vue.js和Node.js的读经管理系统，支持用户管理、状态跟踪和定时任务功能。
 
 ## ✨ 主要功能
 
@@ -117,7 +117,11 @@ cp .env.example .env
 2. 访问 [Vercel](https://vercel.com) 并使用你的 GitHub 账户登录。
 3. 点击 "Add New..." -> "Project"，然后选择你刚刚推送的 GitHub 仓库。
 4. Vercel 会自动识别项目类型和 `vercel.json` 配置。
-5. 在 "Environment Variables" 部分，添加你在 `.env` 文件中配置的所有环境变量。
+5. 在 "Environment Variables" 部分，添加以下环境变量：
+   - `APP_PASSWORD`: 应用访问密码（默认为 admin123）
+   - `TIMEZONE`: 时区设置（默认为 Asia/Shanghai）
+   - `MAX_UNREAD_DAYS`: 最大未读天数（默认为 7）
+   - `CRON_SECRET`: Cron任务安全密钥（可选，用于保护定时任务）
 6. 点击 "Deploy"，Vercel 将自动完成构建和部署。
 
 ### Docker 部署
