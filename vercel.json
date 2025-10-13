@@ -1,10 +1,13 @@
 {
   "version": 2,
+  "framework": "vite",
   "builds": [
     {
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
-      "config": { "distDir": "dist" }
+      "config": {
+        "distDir": "dist"
+      }
     },
     {
       "src": "api/**/*.js",
@@ -17,8 +20,8 @@
       "dest": "/api/$1"
     },
     {
-      "src": "/(.*)",
-      "dest": "/dist/$1"
+      "src": "/((?!api).*)",
+      "dest": "/dist/index.html"
     }
   ],
   "crons": [
