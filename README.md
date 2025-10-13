@@ -113,6 +113,12 @@ cp .env.example .env
 
 ### Vercel 部署 (推荐)
 
+一键部署到 Vercel：
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/linbmv/awca&env=APP_PASSWORD&env=TIMEZONE&env=MAX_UNREAD_DAYS&env=CRON_SECRET&project-name=awca-bible-tracker&repo-name=awca)
+
+或者手动部署：
+
 1. 将你的项目 Fork 并推送到你自己的 GitHub 仓库。
 2. 访问 [Vercel](https://vercel.com) 并使用你的 GitHub 账户登录。
 3. 点击 "Add New..." -> "Project"，然后选择你刚刚推送的 GitHub 仓库。
