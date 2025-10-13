@@ -1,0 +1,9 @@
+{
+  "users": [],
+  "lastReset": null,
+  "config": {
+    "resetHour": 4,
+    "timezone": "Asia/Shanghai",
+    "maxUnreadDays": 7
+  }
+}

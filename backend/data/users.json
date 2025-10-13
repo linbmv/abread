@@ -1,0 +1,74 @@
+{
+  "users": [
+    {
+      "id": 1760353251038,
+      "name": "林宏",
+      "isRead": false,
+      "unreadDays": 5,
+      "frozen": false,
+      "createdAt": "2025-10-13T11:00:51.032Z"
+    },
+    {
+      "id": 1760353391567,
+      "name": "林宏",
+      "isRead": false,
+      "unreadDays": 4,
+      "frozen": false,
+      "createdAt": "2025-10-13T11:03:11.566Z"
+    },
+    {
+      "id": 1760353391574,
+      "name": "林芳",
+      "isRead": false,
+      "unreadDays": 1,
+      "frozen": false,
+      "createdAt": "2025-10-13T11:03:11.572Z"
+    },
+    {
+      "id": 1760353410315,
+      "name": "林芳",
+      "isRead": false,
+      "unreadDays": 5,
+      "frozen": false,
+      "createdAt": "2025-10-13T11:03:30.314Z"
+    },
+    {
+      "id": 1760361289898,
+      "name": "林宏",
+      "isRead": true,
+      "unreadDays": 0,
+      "frozen": false,
+      "createdAt": "2025-10-13T13:14:49.895Z"
+    },
+    {
+      "id": 1760361714566,
+      "name": "林傲杰",
+      "isRead": false,
+      "unreadDays": 6,
+      "frozen": false,
+      "createdAt": "2025-10-13T13:21:54.565Z"
+    },
+    {
+      "id": 1760364785817,
+      "name": "林傲凡",
+      "isRead": false,
+      "unreadDays": 2,
+      "frozen": false,
+      "createdAt": "2025-10-13T14:13:05.796Z"
+    },
+    {
+      "id": 1760371366686,
+      "name": "阿b",
+      "isRead": false,
+      "unreadDays": 5,
+      "frozen": false,
+      "createdAt": "2025-10-13T16:02:46.684Z"
+    }
+  ],
+  "lastReset": "2025-10-13T14:24:26.844Z",
+  "config": {
+    "resetHour": 4,
+    "timezone": "Asia/Shanghai",
+    "maxUnreadDays": 7
+  }
+}

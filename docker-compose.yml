@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    container_name: bible-tracker-frontend
+    ports:
+      - "8080:80" # 将主机的8080端口映射到容器的80端口
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    container_name: bible-tracker-backend
+    ports:
+      - "3001:3001"
+    volumes:
+      # 将本地数据目录挂载到容器中，以实现数据持久化
+      - ./backend/data:/app/backend/data
+    env_file:
+      - ../.env
+    networks:
+      - app-network
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge

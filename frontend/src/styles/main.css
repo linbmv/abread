@@ -1,0 +1,779 @@
+/* 从原始style.css移植的样式 */
+
+:root {
+    --primary-color: #4CAF50;    /* 绿色 */
+    --secondary-color: #2196F3;  /* 蓝色 */
+    --error-color: #f44336;
+    --text-color: #333;
+    --background-color: #f5f5f5;
+    --border-color: #ddd;
+    --card-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    --modal-background: rgba(0,0,0,0.5);
+    --frozen-color: #9e9e9e;
+    --unread-color: #ff4d4f;
+    --read-color: #52c41a;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation; /* 禁用双击放大 */
+}
+
+/* 禁用文字选择 - 修改为只针对特定元素 */
+.user-card, .user-card *, .modal-buttons, .modal h2 {
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    -khtml-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+}
+
+/* 允许输入框的文本选择和编辑 */
+.input-group input,
+.modal textarea {
+    -webkit-touch-callout: text !important;
+    -webkit-user-select: text !important;
+    -khtml-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    user-select: text !important;
+    cursor: text !important;
+}
+
+/* 确保输入框样式正确 */
+.input-group input,
+.modal textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 16px !important;
+    background-color: white;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    outline: none;  /* 移除默认的outline */
+}
+
+/* 输入框焦点样式 */
+.input-group input:focus,
+.modal textarea:focus {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--background-color);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    gap: 20px;  /* 各部分之间的间距 */
+}
+
+/* 头部样式 */
+header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+h1 {
+    color: var(--text-color);
+    margin-bottom: 15px;
+    font-size: 24px;
+}
+
+.reading-plan {
+    margin: 10px 0;
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    box-shadow: var(--card-shadow);
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+/* 添加用户按钮 */
+.add-user-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: var(--secondary-color);  /* 使用蓝色 */
+    color: white;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    z-index: 100;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.add-user-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+}
+
+.add-user-btn:active {
+    transform: scale(0.95);
+}
+
+/* 用户卡片区域 */
+.user-cards {
+    display: flex;           /* 改用flex布局 */
+    flex-wrap: wrap;        /* 允许换行 */
+    gap: 15px;             /* 卡片间距 */
+    padding: 15px;
+    padding-bottom: 96px;
+    justify-content: flex-start;
+}
+
+.user-card {
+    position: relative;
+    flex: 0 0 100px;       /* 固定宽度，不伸缩 */
+    padding: 15px;
+    border-radius: 8px;
+    background-color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 50px;
+    word-break: break-word;
+    box-shadow: var(--card-shadow);
+    font-size: 18px;
+}
+
+.user-card.read {
+    background-color: var(--read-color);
+    color: white;
+}
+
+.user-card.unread {
+    background-color: var(--unread-color);
+    color: white;
+}
+
+.user-card.frozen {
+    background-color: var(--frozen-color);
+    color: white;
+}
+
+.user-card.unfrozen {
+    background-color: var(--read-color);
+    color: white;
+}
+
+.user-card:active {
+    transform: scale(0.95);
+}
+
+.unread-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    min-width: 24px;
+    height: 24px;
+    border-radius: 12px;
+    background-color: white;
+    color: black;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* 统计信息区域 */
+.statistics-section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 30px;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: var(--card-shadow);
+}
+
+.stats-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.stats-header h2 {
+    font-size: 18px;
+}
+
+/* 发送统计按钮样式 */
+.send-stats-btn {
+    padding: 6px 8px;  /* 再次缩小按钮长度约1/3 */
+    background-color: #25D366;  /* WhatsApp 绿色 */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;  /* 稍微缩小字体 */
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 4px;  /* 减小间距 */
+    font-weight: 500;
+}
+
+.send-stats-btn:hover {
+    background-color: #128C7E;  /* WhatsApp 深绿色 */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.send-stats-btn:active {
+    transform: scale(0.95);
+}
+
+.whatsapp-btn-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.live-statistics {
+    margin: 15px 0;
+    font-size: 16px;
+    line-height: 1.8;
+    white-space: pre-line;
+    min-height: 50px;
+}
+
+/* 提示信息 */
+.tips {
+    text-align: center;
+    margin-top: 20px;
+    color: black;  /* 黑色文字 */
+    background-color: white;  /* 白色背景 */
+    font-size: 14px;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+/* 模态框样式 */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--modal-background);
+    z-index: 1000;
+}
+
+.modal.show {
+    display: block;  /* 改为 block 而不是 flex */
+}
+
+.modal-content {
+    position: relative;
+    background-color: white;
+    max-width: 500px;
+    width: 90%;
+    margin: 50px auto 0;  /* 从顶部留出空间 */
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.modal h2 {
+    margin-bottom: 20px;
+    font-size: 18px;
+}
+
+/* 输入框样式优化 */
+.input-group {
+    position: relative;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.input-suffix {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* 错误消息 */
+.error-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    background-color: var(--error-color);  /* 红色背景 */
+    color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 2000;
+    animation: slideIn 0.3s ease;
+    font-size: 14px;
+}
+
+/* 加载状态 */
+.loading-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--modal-background);
+    z-index: 3000;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.loading-spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid var(--secondary-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
+
+.loading-text {
+    color: white;
+    font-size: 16px;
+}
+
+/* 动画 */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 移动端样式 */
+@media (max-width: 768px) {
+    .user-cards {
+        display: none; /* 隐藏桌面样式 */
+    }
+    .user-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1px;
+        justify-content: flex-start;
+        padding: 2px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 10px;
+        max-height: 50vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .user-card {
+        flex: 0 0 auto;
+        min-width: 40px;
+        max-width: 80px;
+        margin: 0;
+        padding: 4px;
+        min-height: 25px;
+        font-size: 14px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        user-select: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transform-origin: center;
+    }
+    .modal-content {
+        width: 95%;
+        margin: 20px auto;
+        max-height: 80vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .input-group input,
+    .modal textarea {
+        font-size: 16px !important;
+        line-height: 1.3;
+        padding: 12px;
+    }
+    .modal.show {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    body.modal-open {
+        position: fixed;
+        width: 100%;
+        overflow: hidden;
+    }
+    .add-user-btn {
+        top: 20px;      /* 保持在顶部 */
+        right: 20px;
+        width: 48px;    /* 移动端稍微小一点 */
+        height: 48px;
+        font-size: 20px;
+    }
+    .live-statistics {
+        margin: 15px 0;
+        font-size: 18px;
+        line-height: 1.8;
+        white-space: pre-line;
+        min-height: 50px;
+    }
+    .stats-header h2 {
+        font-size: 20px;
+    }
+    .stats-content {
+        font-size: 16px;
+        line-height: 1.8;
+    }
+}
+
+/* 桌面端样式 */
+.user-cards {
+    display: flex;           /* 改用flex布局 */
+    flex-wrap: wrap;        /* 允许换行 */
+    gap: 15px;             /* 卡片间距 */
+    padding: 15px;
+    padding-bottom: 96px;
+    justify-content: flex-start;
+}
+
+.user-card {
+    position: relative;
+    flex: 0 0 100px;       /* 固定宽度，不伸缩 */
+    padding: 15px;
+    border-radius: 8px;
+    background-color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 50px;
+    word-break: break-word;
+    box-shadow: var(--card-shadow);
+    font-size: 18px;
+}
+
+/* 按钮样式 */
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background-color: #f5f5f5;
+    color: var(--text-color);
+}
+
+.btn.primary {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+.btn:hover {
+    opacity: 0.9;
+}
+
+.btn:active {
+    transform: scale(0.95);
+}
+
+/* 移除所有可能影响显示的动画效果 */
+.modal,
+.modal-content,
+.input-group input,
+.modal textarea {
+    transition: none !important;
+    transform: none !important;
+    animation: none !important;
+}
+
+/* WhatsApp 状态图标 */
+.whatsapp-status {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.3s ease;
+    position: relative;
+    border: 3px solid white;
+}
+
+.whatsapp-status:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+}
+
+.whatsapp-status .whatsapp-icon {
+    width: 28px;
+    height: 28px;
+    color: white;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+}
+
+.whatsapp-status .status-dot {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: #ff4757;
+    border: 3px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    animation: pulse 2s infinite;
+}
+
+.whatsapp-status.connected .status-dot {
+    background-color: #2ed573;
+    animation: none;
+}
+
+.whatsapp-status.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.8);
+}
+
+/* 断开连接时的特殊样式 */
+.whatsapp-status.disconnected {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+.whatsapp-status.disconnected:hover {
+    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+}
+
+/* WhatsApp 登录模态框 */
+.whatsapp-login-modal {
+    max-width: 600px;
+    text-align: center;
+}
+
+.qr-code-container {
+    margin: 20px 0;
+    padding: 20px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.qr-code-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.qr-code-display img {
+    max-width: 250px;
+    max-height: 250px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+}
+
+/* 🔧 新增：二维码包装器和倒计时 */
+.qr-code-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.qr-code-info {
+    text-align: center;
+}
+
+.qr-countdown {
+    margin-top: 10px;
+    padding: 8px 16px;
+    background-color: #e3f2fd;
+    border-radius: 20px;
+    border: 1px solid #2196f3;
+    font-size: 14px;
+    color: #1976d2;
+}
+
+.qr-countdown strong {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.login-instructions {
+    text-align: left;
+    margin: 20px 0;
+    padding: 15px;
+    background-color: #e8f5e8;
+    border-radius: 8px;
+    border-left: 4px solid #25D366;
+}
+
+.login-instructions ol {
+    margin: 10px 0 0 20px;
+    padding: 0;
+}
+
+.login-instructions li {
+    margin: 5px 0;
+    color: #333;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* 🔧 新增：消息通知样式 */
+.message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 400px;
+    animation: slideInRight 0.3s ease-out;
+}
+
+.message-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.message-warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.message-info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+.message-close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0;
+    margin-left: auto;
+    opacity: 0.7;
+}
+
+.message-close:hover {
+    opacity: 1;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* 响应式设计增强 */
+@media (max-width: 768px) {
+    .message {
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+
+    .whatsapp-status {
+        width: 48px;
+        height: 48px;
+    }
+
+    .whatsapp-status .whatsapp-icon {
+        width: 24px;
+        height: 24px;
+    }
+}

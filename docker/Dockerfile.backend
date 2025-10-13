@@ -1,0 +1,22 @@
+# Dockerfile.backend
+
+FROM node:18-alpine
+
+WORKDIR /app
+
+# 复制 backend 目录下的 package.json 和 package-lock.json
+COPY ../backend/package.json ./
+# COPY ../backend/package-lock.json ./
+
+# 安装依赖
+RUN npm install
+
+# 复制所有后端和共享的API逻辑代码
+COPY ../backend/ ./
+COPY ../api/_lib ./api/_lib
+
+# 暴露端口
+EXPOSE 3001
+
+# 启动后端服务
+CMD ["node", "server.js"]
