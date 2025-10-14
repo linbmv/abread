@@ -79,9 +79,12 @@ export async function POST(request) {
   }
 }
 
-export async function PUT(request, { params }) {
+export async function PUT(request) {
   try {
-    const userId = params.id
+    const url = new URL(request.url);
+    const pathParts = url.pathname.split('/');
+    const userId = pathParts[pathParts.length - 1]; // 获取URL路径的最后一部分作为用户ID
+    
     if (!userId) {
       return new Response(JSON.stringify({ error: '用户ID不能为空' }), {
         status: 400,
@@ -140,9 +143,12 @@ export async function PUT(request, { params }) {
   }
 }
 
-export async function DELETE(request, { params }) {
+export async function DELETE(request) {
   try {
-    const userId = params.id
+    const url = new URL(request.url);
+    const pathParts = url.pathname.split('/');
+    const userId = pathParts[pathParts.length - 1]; // 获取URL路径的最后一部分作为用户ID
+    
     if (!userId) {
       return new Response(JSON.stringify({ error: '用户ID不能为空' }), {
         status: 400,
