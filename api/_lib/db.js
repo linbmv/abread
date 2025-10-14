@@ -25,12 +25,32 @@ const dataPath = process.env.VERCEL ? join('/tmp', 'users.json') : join(process.
 // 确保数据目录存在
 async function ensureDataFile() {
     try {
-        await fs.mkdir(join(process.cwd(), 'backend', 'data'), { recursive: true });
-        await fs.stat(dataPath);
+        // 在Vercel环境中，只尝试写入到/tmp目录，不需要创建子目录
+        if (process.env.VERCEL) {
+            try {
+                await fs.stat(dataPath);
+            } catch (e) {
+                // 如果文件不存在，则创建一个空的JSON文件
+                if (e.code === 'ENOENT') {
+                    await fs.writeFile(dataPath, JSON.stringify({ users: [], lastReset: null, config: { resetHour: 4, timezone: 'Asia/Shanghai', maxUnreadDays: 7 } }, null, 2));
+                }
+            }
+        } else {
+            // 在本地环境中，按原方式处理
+            await fs.mkdir(join(process.cwd(), 'backend', 'data'), { recursive: true });
+            await fs.stat(dataPath);
+        }
     } catch (e) {
-        // 如果文件不存在，则创建一个空的JSON文件
-        if (e.code === 'ENOENT') {
-            await fs.writeFile(dataPath, JSON.stringify({ users: [], lastReset: null, config: { resetHour: 4, timezone: 'Asia/Shanghai', maxUnreadDays: 7 } }, null, 2));
+        // 如果在Vercel环境中仍然失败，创建一个空文件
+        if (process.env.VERCEL) {
+            try {
+                await fs.writeFile(dataPath, JSON.stringify({ users: [], lastReset: null, config: { resetHour: 4, timezone: 'Asia/Shanghai', maxUnreadDays: 7 } }, null, 2));
+            } catch (writeError) {
+                console.error('创建数据文件失败:', writeError);
+                throw writeError;
+            }
+        } else {
+            throw e;
         }
     }
 }
