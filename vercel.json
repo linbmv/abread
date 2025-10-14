@@ -13,10 +13,9 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/public/index.html"
+      "dest": "/index.html"
     }
   ],
-  "public": true,
   "crons": [
     {
       "path": "/api/cron",

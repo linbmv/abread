@@ -15,4 +15,4 @@ yarn-error.log*
 *.log
 .vscode/
 .idea/
-!public/
+public/
