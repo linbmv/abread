@@ -1,9 +1,14 @@
 {
   "version": 2,
+  "cleanUrls": true,
+  "trailingSlash": false,
   "builds": [
     {
       "src": "api/**/*.js",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["api/_lib/**"]
+      }
     },
     {
       "src": "frontend/package.json",
@@ -13,15 +18,14 @@
       }
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "status": 200,
-      "dest": "/api/$1"
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
     },
     {
-      "src": "/(.*)",
-      "dest": "/"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "crons": [
