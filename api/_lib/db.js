@@ -2,7 +2,22 @@
 // /api/_lib/db.js - 数据存储逻辑 (使用JSON文件)
 import { join } from 'path';
 import { promises as fs } from 'fs';
-import { lock } from 'proper-lockfile';
+// import { lock } from 'proper-lockfile'; // Vercel环境中可能不支持proper-lockfile
+
+// 为Vercel环境创建一个简化的锁机制
+const fileLocks = new Set();
+
+async function lockFile(filePath) {
+    // 在Vercel环境中，简单地使用内存锁
+    while (fileLocks.has(filePath)) {
+        await new Promise(resolve => setTimeout(resolve, 10));
+    }
+    
+    fileLocks.add(filePath);
+    return async () => {
+        fileLocks.delete(filePath);
+    };
+}
 
 // 确定数据文件的路径。在Vercel环境中，/tmp/是唯一可写的目录。
 const dataPath = process.env.VERCEL ? join('/tmp', 'users.json') : join(process.cwd(), 'backend', 'data', 'users.json');
@@ -31,16 +46,11 @@ async function readData() {
 // 写入数据
 async function writeData(data) {
     await ensureDataFile();
-    const lockFn = await loadLock();
-    let release;
+    const release = await lockFile(dataPath);
     try {
-        // 对文件加锁，防止并发写入问题
-        release = await lockFn(dataPath);
         await fs.writeFile(dataPath, JSON.stringify(data, null, 2));
     } finally {
-        if (release) {
-            await release();
-        }
+        await release();
     }
 }
 
