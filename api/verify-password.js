@@ -1,5 +1,4 @@
 // /api/verify-password.js - 密码验证API
-import { db } from './_lib/db.js';
 
 export async function POST(request) {
   try {
