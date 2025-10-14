@@ -23,7 +23,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/dist/index.html",
+      "dest": "/index.html",
       "headers": {
         "Cache-Control": "no-cache, no-store"
       }
