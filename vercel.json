@@ -16,17 +16,14 @@
       }
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
     },
     {
-      "src": "/(.*)",
-      "dest": "/dist/index.html",
-      "headers": {
-        "Cache-Control": "no-cache, no-store"
-      }
+      "source": "/((?!api/).*)",
+      "destination": "/dist/index.html"
     }
   ],
   "crons": [
