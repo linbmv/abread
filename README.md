@@ -115,7 +115,7 @@ cp .env.example .env
 
 一键部署到 Vercel：
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/linbmv/awca&env=APP_PASSWORD&env=TIMEZONE&env=MAX_UNREAD_DAYS&env=CRON_SECRET&project-name=awca-bible-tracker&repo-name=awca)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/linbmv/abread&env=APP_PASSWORD&env=TIMEZONE&env=MAX_UNREAD_DAYS&env=CRON_SECRET&project-name=abread-bible-tracker&repo-name=abread)
 
 或者手动部署：
 

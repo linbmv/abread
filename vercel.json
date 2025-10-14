@@ -20,10 +20,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/dist/index.html",
-      "headers": {
-        "cache-control": "public, max-age=0"
-      }
+      "dest": "/dist/$1"
     }
   ],
   "crons": [
