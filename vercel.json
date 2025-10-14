@@ -1,13 +1,9 @@
 {
   "version": 2,
-  "public": false,
   "builds": [
     {
       "src": "api/**/*.js",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": ["api/_lib/**"]
-      }
+      "use": "@vercel/node"
     },
     {
       "src": "frontend/package.json",
@@ -17,28 +13,21 @@
       }
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "/static/(.*)",
-      "dest": "/static/$1"
-    },
-    {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
     }
   ],
+  "redirects": [],
+  "headers": [],
   "crons": [
     {
       "path": "/api/cron",
       "schedule": "0 4 * * *"
     }
-  ]
+  ],
+  "github": {
+    "silent": true
+  }
 }
