@@ -22,8 +22,8 @@
       "destination": "/api/$1"
     },
     {
-      "source": "/((?!api/).*)",
-      "destination": "/dist/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "crons": [
