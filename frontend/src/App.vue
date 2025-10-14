@@ -32,8 +32,9 @@
     <!-- 统计信息区域 -->
     <div class="statistics-section">
       <div class="stats-header">
-        <button class="send-stats-btn" @click="sendStatistics" title="发送统计">
-          <span class="whatsapp-btn-icon">💬</span> 发送
+        <button class="send-stats-btn" @click="sendStatistics" title="统计">
+          <i class="fab fa-whatsapp whatsapp-btn-icon"></i>
+          <span class="btn-text">统计</span>
         </button>
       </div>
       <div class="live-statistics" id="liveStatistics">

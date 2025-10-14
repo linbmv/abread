@@ -231,19 +231,21 @@ h1 {
 
 /* 发送统计按钮样式 */
 .send-stats-btn {
-    padding: 6px 8px;  /* 再次缩小按钮长度约1/3 */
+    padding: 8px 12px;  /* 调整内边距使其更适合中文 */
     background-color: #25D366;  /* WhatsApp 绿色 */
     color: white;
     border: none;
-    border-radius: 8px;
-    font-size: 13px;  /* 稍微缩小字体 */
+    border-radius: 8px;  /* 圆角矩形 */
+    font-size: 14px;  /* 调整字体大小 */
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     display: flex;
     align-items: center;
-    gap: 4px;  /* 减小间距 */
+    gap: 6px;  /* 调整间距 */
     font-weight: 500;
+    min-width: 80px;  /* 设置最小宽度 */
+    justify-content: center;  /* 内容居中 */
 }
 
 .send-stats-btn:hover {
@@ -256,9 +258,22 @@ h1 {
 }
 
 .whatsapp-btn-icon {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     flex-shrink: 0;
+    font-size: 16px;
+    line-height: 1;
+    color: white;
+}
+
+.send-stats-btn .fab {
+    font-size: 16px;
+    color: white;
+}
+
+.btn-text {
+    font-size: 14px;
+    font-weight: 500;
 }
 
 .live-statistics {
