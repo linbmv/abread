@@ -13,14 +13,30 @@
       }
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/verify-password",
-      "dest": "/api/verify-password.js"
+      "source": "/api/verify-password",
+      "destination": "/api/verify-password.js"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
+      "source": "/api/users",
+      "destination": "/api/users.js"
+    },
+    {
+      "source": "/api/users/:path*",
+      "destination": "/api/users.js"
+    },
+    {
+      "source": "/api/statistics",
+      "destination": "/api/statistics.js"
+    },
+    {
+      "source": "/api/statistics/send",
+      "destination": "/api/statistics-send.js"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1.js"
     }
   ],
   "crons": [

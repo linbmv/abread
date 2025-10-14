@@ -42,7 +42,7 @@ function generateStatisticsText(users) {
     return stats.trim();
 }
 
-module.exports = {
+export {
     validateUser,
     generateStatisticsText
 };
