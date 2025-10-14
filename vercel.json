@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "public": false,
   "builds": [
     {
       "src": "api/**/*.js",
@@ -19,12 +20,18 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "headers": { "Cache-Control": "no-cache" },
       "dest": "/api/$1"
     },
     {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
+    },
+    {
       "src": "/(.*)",
-      "headers": { "Cache-Control": "no-cache" },
       "dest": "/index.html"
     }
   ],
