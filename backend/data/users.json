@@ -28,7 +28,7 @@
       "id": 1760353410315,
       "name": "林芳",
       "isRead": false,
-      "unreadDays": 5,
+      "unreadDays": 1,
       "frozen": false,
       "createdAt": "2025-10-13T11:03:30.314Z"
     },
@@ -43,8 +43,8 @@
     {
       "id": 1760361714566,
       "name": "林傲杰",
-      "isRead": false,
-      "unreadDays": 6,
+      "isRead": true,
+      "unreadDays": 0,
       "frozen": false,
       "createdAt": "2025-10-13T13:21:54.565Z"
     },

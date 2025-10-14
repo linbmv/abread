@@ -1,1 +1,15 @@
-{}
+{
+  "name": "abread",
+  "version": "1.0.0",
+  "description": "Bible Reading Tracker",
+  "main": "server.js",
+  "scripts": {
+    "build": "npm run build-frontend",
+    "build-frontend": "cd frontend && npm install && npm run build",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {}
+}
