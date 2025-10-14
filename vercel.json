@@ -3,7 +3,10 @@
   "builds": [
     {
       "src": "api/**/*.js",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["api/_lib/**"]
+      }
     },
     {
       "src": "frontend/package.json",
@@ -20,7 +23,10 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/dist/$1"
+      "dest": "/dist/index.html",
+      "headers": {
+        "Cache-Control": "no-cache, no-store"
+      }
     }
   ],
   "crons": [
