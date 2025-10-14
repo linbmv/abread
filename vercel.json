@@ -3,7 +3,10 @@
   "builds": [
     {
       "src": "api/**/*.js",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["api/_lib/**"]
+      }
     },
     {
       "src": "frontend/package.json",
@@ -13,21 +16,5 @@
       }
     }
   ],
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    }
-  ],
-  "redirects": [],
-  "headers": [],
-  "crons": [
-    {
-      "path": "/api/cron",
-      "schedule": "0 4 * * *"
-    }
-  ],
-  "github": {
-    "silent": true
-  }
+  "outputDirectory": "dist"
 }
