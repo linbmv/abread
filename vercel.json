@@ -13,6 +13,7 @@
       }
     }
   ],
+  "outputDirectory": "frontend/dist",
   "rewrites": [
     {
       "source": "/api/verify-password",
