@@ -33,7 +33,7 @@
     <div class="statistics-section">
       <div class="stats-header">
         <button class="send-stats-btn" @click="sendStatistics" title="统计">
-          <img src="./assets/tj.svg" alt="统计" class="stats-btn-icon" />
+          <i class="fab fa-whatsapp whatsapp-btn-icon"></i>
           <span class="btn-text">统计</span>
         </button>
       </div>
