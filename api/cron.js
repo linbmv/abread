@@ -1,3 +1,5 @@
+export const runtime = 'edge';
+
 // /api/cron.js - Vercel Cron Job 处理器
 import { db } from './_lib/db.js';
 import { generateStatisticsText } from './_lib/utils.js';

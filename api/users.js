@@ -1,3 +1,5 @@
+export const runtime = 'edge';
+
 // /api/users.js - 用户管理API
 import { db } from './_lib/db.js'
 import { validateUser } from './_lib/utils.js'
