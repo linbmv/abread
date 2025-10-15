@@ -281,10 +281,13 @@ async function writeDataToRedis(users, config) {
 
     console.log('数据写入Redis成功');
 
-    // 同时写入Gist作为备份
+    // 异步写入Gist作为备份（不阻塞主操作）
     if (GIST_ID && GIST_TOKEN) {
-      console.log('写入数据到Gist作为备份');
-      await writeToGist({ users, config });
+      console.log('异步写入数据到Gist作为备份');
+      // 异步执行Gist备份，不等待结果，避免阻塞主流程
+      writeToGist({ users, config }).catch(error => {
+        console.error('Gist备份失败（非致命错误）:', error.message);
+      });
     }
   } catch (error) {
     console.error('写入Redis失败:', error);
