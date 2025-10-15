@@ -2,42 +2,22 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/**/*.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "frontend/package.json",
-      "use": "@vercel/static-build",
+      "src": "package.json",
+      "use": "@vercel/node",
       "config": {
-        "distDir": "dist"
+        "includeFiles": ["dist/**", "api/**", "backend/**"],
+        "bundleNodeModules": true
       }
     }
   ],
-  "outputDirectory": "dist",
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/verify-password",
-      "destination": "/api/verify-password.js"
+      "src": "/api/(.*)",
+      "dest": "/server.js"
     },
     {
-      "source": "/api/users",
-      "destination": "/api/users.js"
-    },
-    {
-      "source": "/api/users/:id",
-      "destination": "/api/users/[id].js"
-    },
-    {
-      "source": "/api/statistics",
-      "destination": "/api/statistics.js"
-    },
-    {
-      "source": "/api/statistics/send",
-      "destination": "/api/statistics-send.js"
-    },
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1.js"
+      "src": "/(.*)",
+      "dest": "/server.js"
     }
   ],
   "crons": [

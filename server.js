@@ -21,8 +21,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 服务构建后的静态文件
-app.use(express.static(path.join(__dirname, 'frontend/dist')));
+// 根据环境服务构建后的静态文件
+const staticDir = process.env.VERCEL ? 'dist' : 'frontend/dist';
+app.use(express.static(path.join(__dirname, staticDir)));
 
 // --- API 路由 ---
 // 获取所有用户

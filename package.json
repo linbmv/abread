@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "build": "npm run build-frontend",
-    "build-frontend": "cd frontend && npm install && npm run build && cd .. && if [ -d frontend/dist ]; then cp -r frontend/dist dist; else xcopy frontend\\dist dist /E /I; fi",
+    "build-frontend": "cd frontend && npm install && npm run build && cd .. && if [ -d frontend/dist ]; then cp -r frontend/dist .; else xcopy frontend\\dist . /E /I; fi",
     "start": "node server.js",
     "test-redis": "node test-redis.js"
   },
