@@ -5,7 +5,7 @@
       "src": "package.json",
       "use": "@vercel/node",
       "config": {
-        "includeFiles": ["dist/**", "api/**", "backend/**"],
+        "includeFiles": ["dist/**", "api/**", "backend/**", "server.js", "node_modules/**"],
         "bundleNodeModules": true
       }
     }

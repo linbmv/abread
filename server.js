@@ -23,7 +23,12 @@ app.use(express.json());
 
 // 根据环境服务构建后的静态文件
 const staticDir = process.env.VERCEL ? 'dist' : 'frontend/dist';
-app.use(express.static(path.join(__dirname, staticDir)));
+const staticPath = path.join(__dirname, staticDir);
+if (require('fs').existsSync(staticPath)) {
+  app.use(express.static(staticPath));
+} else {
+  console.warn(`警告: 静态文件目录 ${staticPath} 不存在`);
+}
 
 // --- API 路由 ---
 // 获取所有用户
@@ -185,9 +190,41 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend/dist', 'index.html'));
 });
 
-const PORT = process.env.PORT || 3003;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+// Vercel 兼容的处理函数
+const handler = (req, res) => {
+  // 检查是否已经构建了前端文件
+  const staticDir = process.env.VERCEL ? 'dist' : 'frontend/dist';
+  const path = require('path');
 
-module.exports = app;
+  // 动态设置静态文件目录，但只在第一次请求时设置
+  // 检查是否已存在静态中间件，避免重复添加
+  let hasStaticMiddleware = false;
+  for (const layer of app._router.stack) {
+    if (layer.name === 'serveStatic') {
+      hasStaticMiddleware = true;
+      break;
+    }
+  }
+
+  if (!hasStaticMiddleware) {
+    const express = require('express');
+    app.use(express.static(path.join(__dirname, staticDir)));
+  }
+
+  // 代理请求到 Express 应用
+  app(req, res);
+};
+
+// 只在非 Vercel 环境中启动服务器
+if (!process.env.VERCEL) {
+  const PORT = process.env.PORT || 3003;
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+
+  // 导出 app 用于本地开发
+  module.exports = app;
+} else {
+  // 在 Vercel 环境中导出处理函数
+  module.exports = handler;
+}
