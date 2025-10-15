@@ -387,7 +387,9 @@ const db = {
   async updateUser(userId, updates) {
     try {
       const data = await readData();
-      const userIndex = data.users.findIndex(u => u.id == userId);
+      // 尝试将userId转换为数字进行比较，以处理字符串/数字类型不匹配问题
+      const numericUserId = isNaN(userId) ? userId : Number(userId);
+      const userIndex = data.users.findIndex(u => u.id == numericUserId);
 
       if (userIndex === -1) {
         return null;
@@ -405,8 +407,10 @@ const db = {
   async deleteUser(userId) {
     try {
       const data = await readData();
+      // 尝试将userId转换为数字进行比较，以处理字符串/数字类型不匹配问题
+      const numericUserId = isNaN(userId) ? userId : Number(userId);
       const initialLength = data.users.length;
-      const filteredUsers = data.users.filter(u => u.id != userId);
+      const filteredUsers = data.users.filter(u => u.id != numericUserId);
 
       if (filteredUsers.length === initialLength) {
         return null; // 用户未找到
