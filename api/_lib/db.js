@@ -102,20 +102,9 @@ async function writeToGist(data) {
 
 // 主要数据访问函数
 async function readData() {
-  // 首先尝试从Gist读取（作为主要数据源）
-  if (GIST_ID && GIST_TOKEN) {
-    try {
-      const gistData = await readFromGist();
-      return gistData;
-    } catch (gistError) {
-      console.warn('从Gist读取数据失败:', gistError.message);
-    }
-  }
-
-  // 如果Gist不可用，再尝试Edge Config
+  // 优先从Edge Config读取（更快的读取速度）
   if (get && process.env.EDGE_CONFIG) {
     try {
-      // 首先尝试从Edge Config读取
       const users = await get(USERS_KEY);
       const config = await get(CONFIG_KEY);
 
@@ -128,39 +117,62 @@ async function readData() {
     }
   }
 
+  // 如果Edge Config不可用或失败，尝试从Gist读取
+  if (GIST_ID && GIST_TOKEN) {
+    try {
+      const gistData = await readFromGist();
+      return gistData;
+    } catch (gistError) {
+      console.warn('从Gist读取数据失败:', gistError.message);
+    }
+  }
+
   // 如果两者都失败，返回默认空数据
   return { users: [], config: { resetHour: 4, timezone: 'Asia/Shanghai', maxUnreadDays: 7, lastReset: null } };
 }
 
 async function writeData(users, config) {
-  // 优先写入Gist
-  if (GIST_ID && GIST_TOKEN) {
-    try {
-      await writeToGist({ users, config });
-      // 如果Gist写入成功，可以提前返回
-      return;
-    } catch (gistError) {
-      console.error('写入Gist失败:', gistError.message);
-      // 如果Gist写入失败，尝试写入Edge Config
-    }
-  }
+  // 优先写入Edge Config（更快的写入速度）
+  const writePromises = [];
 
-  // 如果Gist不可用或写入失败，写入Edge Config
   if (set && process.env.EDGE_CONFIG) {
-    try {
-      await Promise.all([
+    writePromises.push(
+      Promise.all([
         set(USERS_KEY, users),
         set(CONFIG_KEY, config)
-      ]);
-    } catch (edgeError) {
-      console.error('写入Edge Config失败:', edgeError.message);
-      throw edgeError;
+      ]).catch(error => {
+        console.error('写入Edge Config失败:', error.message);
+        throw error;
+      })
+    );
+  }
+
+  // 同时写入Gist作为备份
+  if (GIST_ID && GIST_TOKEN) {
+    writePromises.push(
+      writeToGist({ users, config }).catch(error => {
+        console.error('写入Gist失败:', error.message);
+        // Gist写入失败不应该影响整体操作
+      })
+    );
+  }
+
+  // 等待主要存储（Edge Config）写入完成
+  if (writePromises.length > 0) {
+    try {
+      // 等待Edge Config写入（如果存在）
+      if (set && process.env.EDGE_CONFIG) {
+        await writePromises[0];
+      } else if (GIST_ID && GIST_TOKEN && writePromises.length > 0) {
+        // 如果没有Edge Config，至少等待Gist写入
+        await writePromises[writePromises.length - 1];
+      }
+    } catch (error) {
+      // 如果主要存储写入失败，抛出错误
+      throw error;
     }
   } else {
-    // 如果两种存储方式都不可用，抛出错误
-    if (!(GIST_ID && GIST_TOKEN)) {
-      throw new Error('没有配置任何数据存储方案 (EDGE_CONFIG 或 GIST)');
-    }
+    throw new Error('没有配置任何数据存储方案 (EDGE_CONFIG 或 GIST)');
   }
 }
 
