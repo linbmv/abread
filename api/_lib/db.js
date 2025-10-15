@@ -386,17 +386,28 @@ const db = {
 
   async updateUser(userId, updates) {
     try {
+      console.log('db.updateUser被调用，userId:', userId, 'type:', typeof userId, 'updates:', updates);
       const data = await readData();
+      console.log('从数据库读取的用户数量:', data.users.length);
+
       // 尝试将userId转换为数字进行比较，以处理字符串/数字类型不匹配问题
       const numericUserId = isNaN(userId) ? userId : Number(userId);
+      console.log('比较前转换的ID:', numericUserId, 'type:', typeof numericUserId);
+
+      // 检查数据中的用户ID类型
+      console.log('数据库中的用户ID示例:', data.users.slice(0, 3).map(u => ({ id: u.id, type: typeof u.id })));
+
       const userIndex = data.users.findIndex(u => u.id == numericUserId);
+      console.log('查找结果 - userIndex:', userIndex, '匹配的用户:', userIndex !== -1 ? data.users[userIndex] : null);
 
       if (userIndex === -1) {
+        console.log('未找到用户，搜索ID:', numericUserId, '原始ID:', userId);
         return null;
       }
 
       data.users[userIndex] = { ...data.users[userIndex], ...updates };
       await writeData(data.users, data.config);
+      console.log('用户更新成功，返回数据:', data.users[userIndex]);
       return data.users[userIndex];
     } catch (error) {
       console.error('更新用户失败:', error);
@@ -406,17 +417,28 @@ const db = {
 
   async deleteUser(userId) {
     try {
+      console.log('db.deleteUser被调用，userId:', userId, 'type:', typeof userId);
       const data = await readData();
+      console.log('从数据库读取的用户数量:', data.users.length);
+
       // 尝试将userId转换为数字进行比较，以处理字符串/数字类型不匹配问题
       const numericUserId = isNaN(userId) ? userId : Number(userId);
+      console.log('比较前转换的ID:', numericUserId, 'type:', typeof numericUserId);
+
+      // 检查数据中的用户ID类型
+      console.log('数据库中的用户ID示例:', data.users.slice(0, 3).map(u => ({ id: u.id, type: typeof u.id })));
+
       const initialLength = data.users.length;
       const filteredUsers = data.users.filter(u => u.id != numericUserId);
+      console.log('删除前长度:', initialLength, '删除后长度:', filteredUsers.length, '是否找到用户:', filteredUsers.length !== initialLength);
 
       if (filteredUsers.length === initialLength) {
+        console.log('未找到要删除的用户，搜索ID:', numericUserId, '原始ID:', userId);
         return null; // 用户未找到
       }
 
       await writeData(filteredUsers, data.config);
+      console.log('用户删除成功');
       return { success: true };
     } catch (error) {
       console.error('删除用户失败:', error);
