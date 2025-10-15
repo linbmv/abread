@@ -1,8 +1,31 @@
 
 // /api/_lib/db.js - 数据存储逻辑 (使用Vercel Edge Config + GitHub Gist备用方案)
-const { createClient } = require('@vercel/edge-config');
 
-const { get, set } = createClient(process.env.EDGE_CONFIG);
+// 由于@vercel/edge-config在Node.js环境中可能需要特殊处理
+// 我们使用动态导入的方式来初始化客户端
+let edgeConfigClient = null;
+let get = null;
+let set = null;
+
+// 初始化Edge Config客户端
+function initEdgeConfig() {
+  if (!process.env.EDGE_CONFIG) {
+    console.warn('EDGE_CONFIG环境变量未设置，将使用Gist作为数据存储');
+    return;
+  }
+
+  try {
+    // 在Node.js环境中，我们可能需要动态导入
+    const { createClient } = require('@vercel/edge-config');
+    edgeConfigClient = createClient(process.env.EDGE_CONFIG);
+    ({ get, set } = edgeConfigClient);
+  } catch (error) {
+    console.warn('Edge Config初始化失败，将使用Gist作为数据存储:', error.message);
+  }
+}
+
+// 初始化客户端
+initEdgeConfig();
 
 // Edge Config键名常量
 const USERS_KEY = 'bible-reading-users';
@@ -79,6 +102,11 @@ async function writeToGist(data) {
 
 // 主要数据访问函数
 async function readData() {
+  // 如果Edge Config未初始化或未配置，直接使用Gist
+  if (!get || !process.env.EDGE_CONFIG) {
+    return await readFromGist();
+  }
+
   try {
     // 首先尝试从Edge Config读取
     const users = await get(USERS_KEY);
@@ -96,6 +124,14 @@ async function readData() {
 }
 
 async function writeData(users, config) {
+  // 如果Edge Config未初始化或未配置，只写入Gist
+  if (!set || !process.env.EDGE_CONFIG) {
+    if (GIST_ID && GIST_TOKEN) {
+      await writeToGist({ users, config });
+    }
+    return;
+  }
+
   try {
     // 同时写入Edge Config和Gist
     await Promise.all([
@@ -108,8 +144,13 @@ async function writeData(users, config) {
       await writeToGist({ users, config });
     }
   } catch (error) {
-    console.error('写入数据失败:', error);
-    throw error;
+    console.error('写入数据失败，尝试使用Gist作为备选方案:', error);
+    // 如果Edge Config写入失败，至少尝试写入Gist
+    if (GIST_ID && GIST_TOKEN) {
+      await writeToGist({ users, config });
+    } else {
+      throw error;
+    }
   }
 }
 
