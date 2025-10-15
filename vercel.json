@@ -23,8 +23,8 @@
       "destination": "/api/users.js"
     },
     {
-      "source": "/api/users/:path*",
-      "destination": "/api/users.js"
+      "source": "/api/users/:id",
+      "destination": "/api/users/[id].js"
     },
     {
       "source": "/api/statistics",
