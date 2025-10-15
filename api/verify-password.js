@@ -1,45 +1,37 @@
+/* eslint-disable no-undef */
 // /api/verify-password.js - 密码验证API
-const { createRequire } = require('module');
-const require = createRequire(import.meta.url);
 
-// 对于Vercel Node.js运行时的密码验证API
-module.exports = async function handler(request, response) {
-  // 确定HTTP方法
-  const { method } = request;
+// Vercel Serverless Function for password verification
+module.exports = async (req, res) => {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-  // 设置CORS头部
-  response.setHeader('Access-Control-Allow-Origin', '*');
-  response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-  if (method === 'OPTIONS') {
-    response.status(200).end();
-    return;
+  // Handle preflight request
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
   }
 
-  if (method === 'POST') {
-    try {
-      let body = '';
-      for await (const chunk of request) {
-        body += chunk;
-      }
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
-      const { password } = JSON.parse(body);
+  try {
+    const { password } = req.body;
 
-      // 从环境变量获取密码，如果不存在则使用默认密码
-      const correctPassword = process.env.APP_PASSWORD || 'admin123';
+    // Get password from environment variable, default to 'admin123'
+    const correctPassword = process.env.APP_PASSWORD || 'admin123';
 
-      if (password === correctPassword) {
-        response.status(200).json({ valid: true });
-      } else {
-        response.status(401).json({ valid: false, error: '密码错误' });
-      }
-    } catch (error) {
-      console.error('密码验证失败:', error);
-      response.status(500).json({ error: '密码验证失败' });
+    if (password === correctPassword) {
+      return res.status(200).json({ valid: true });
+    } else {
+      return res.status(401).json({ valid: false, error: '密码错误' });
     }
-  } else {
-    response.status(405).json({ error: 'Method not allowed' });
+  } catch (error) {
+    console.error('密码验证失败:', error);
+    return res.status(500).json({ error: '密码验证失败' });
   }
 };
 
