@@ -3,10 +3,7 @@
   "builds": [
     {
       "src": "api/**/*.js",
-      "use": "@vercel/edge",
-      "config": {
-        "includeFiles": ["api/_lib/**"]
-      }
+      "use": "@vercel/edge"
     },
     {
       "src": "package.json",
