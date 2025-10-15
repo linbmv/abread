@@ -2,8 +2,8 @@
 // /api/users/[id].js - 特定用户管理API
 
 // 由于Vercel构建问题，需要使用require导入
-const { db } = require('../../_lib/db.js');
-const { validateUser } = require('../../_lib/utils.js');
+const { db } = require('../_lib/db.js');
+const { validateUser } = require('../_lib/utils.js');
 
 // Vercel Serverless Function for specific user management
 module.exports = async (req, res) => {
