@@ -33,7 +33,7 @@
     <div class="statistics-section">
       <div class="stats-header">
         <button class="send-stats-btn" @click="sendStatistics" title="统计">
-          <img src="/tj.png" alt="统计" class="stats-btn-icon" />
+          <img src="./assets/tj.svg" alt="统计" class="stats-btn-icon" />
           <span class="btn-text">统计</span>
         </button>
       </div>
