@@ -1,57 +1,48 @@
-export const runtime = 'edge';
-
 // /api/verify-password.js - 密码验证API
+const { createRequire } = require('module');
+const require = createRequire(import.meta.url);
 
-export async function POST(request) {
-  try {
-    const { password } = await request.json();
+// 对于Vercel Node.js运行时的密码验证API
+module.exports = async function handler(request, response) {
+  // 确定HTTP方法
+  const { method } = request;
 
-    // 从环境变量获取密码，如果不存在则使用默认密码
-    const correctPassword = process.env.APP_PASSWORD || 'admin123';
+  // 设置CORS头部
+  response.setHeader('Access-Control-Allow-Origin', '*');
+  response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-    if (password === correctPassword) {
-      return new Response(JSON.stringify({ valid: true }), {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-        }
-      });
-    } else {
-      return new Response(JSON.stringify({ valid: false, error: '密码错误' }), {
-        status: 401,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-        }
-      });
-    }
-  } catch (error) {
-    console.error('密码验证失败:', error);
-    return new Response(JSON.stringify({ error: '密码验证失败' }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-      }
-    });
+  if (method === 'OPTIONS') {
+    response.status(200).end();
+    return;
   }
-}
 
-// 添加GET方法处理OPTIONS请求，解决CORS问题
-export async function OPTIONS() {
-  return new Response(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    },
-  });
-}
+  if (method === 'POST') {
+    try {
+      let body = '';
+      for await (const chunk of request) {
+        body += chunk;
+      }
+
+      const { password } = JSON.parse(body);
+
+      // 从环境变量获取密码，如果不存在则使用默认密码
+      const correctPassword = process.env.APP_PASSWORD || 'admin123';
+
+      if (password === correctPassword) {
+        response.status(200).json({ valid: true });
+      } else {
+        response.status(401).json({ valid: false, error: '密码错误' });
+      }
+    } catch (error) {
+      console.error('密码验证失败:', error);
+      response.status(500).json({ error: '密码验证失败' });
+    }
+  } else {
+    response.status(405).json({ error: 'Method not allowed' });
+  }
+};
+
+module.exports.config = {
+  runtime: 'nodejs',
+};
