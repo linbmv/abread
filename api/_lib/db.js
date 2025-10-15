@@ -24,6 +24,14 @@ function initEdgeConfig() {
 
     // 检查客户端是否正确创建
     if (edgeConfigClient) {
+      console.log('Edge Config客户端结构:', Object.keys(edgeConfigClient));
+      console.log('Edge Config客户端方法检查:', {
+        hasGet: 'get' in edgeConfigClient,
+        hasSet: 'set' in edgeConfigClient,
+        getIsFunction: typeof edgeConfigClient.get === 'function',
+        setIsFunction: typeof edgeConfigClient.set === 'function'
+      });
+
       // 确保正确提取get和set函数
       get = edgeConfigClient.get;
       set = edgeConfigClient.set;
@@ -34,6 +42,13 @@ function initEdgeConfig() {
 
       if (typeof get !== 'function' || typeof set !== 'function') {
         console.error('Edge Config客户端方法未正确获取');
+        // 如果直接获取失败，尝试其他方式
+        if (!get && edgeConfigClient.get) {
+          get = edgeConfigClient.get.bind(edgeConfigClient);
+        }
+        if (!set && edgeConfigClient.set) {
+          set = edgeConfigClient.set.bind(edgeConfigClient);
+        }
       }
     } else {
       console.error('Edge Config客户端未正确初始化');
