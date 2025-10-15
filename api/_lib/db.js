@@ -23,11 +23,18 @@ function initEdgeConfig() {
     edgeConfigClient = createClient(process.env.EDGE_CONFIG);
 
     // 检查客户端是否正确创建
-    if (edgeConfigClient && edgeConfigClient.get && edgeConfigClient.set) {
-      ({ get, set } = edgeConfigClient);
+    if (edgeConfigClient) {
+      // 确保正确提取get和set函数
+      get = edgeConfigClient.get;
+      set = edgeConfigClient.set;
+
       console.log('Edge Config客户端初始化成功');
       console.log('get函数可用:', typeof get === 'function');
       console.log('set函数可用:', typeof set === 'function');
+
+      if (typeof get !== 'function' || typeof set !== 'function') {
+        console.error('Edge Config客户端方法未正确获取');
+      }
     } else {
       console.error('Edge Config客户端未正确初始化');
     }
