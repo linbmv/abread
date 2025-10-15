@@ -1,6 +1,5 @@
 // api/v1.js - 统一 API 入口点，处理所有 API 请求
-import { db } from '../backend/db.js';
-import { generateStatisticsText } from '../backend/utils.js';
+// 使用动态导入来避免潜在的模块加载问题
 
 export default async function handler(req, res) {
   // 添加调试日志
@@ -9,28 +8,47 @@ export default async function handler(req, res) {
   console.log('请求方法:', req.method);
   console.log('请求头:', JSON.stringify(req.headers, null, 2));
 
-  // 在Vercel中，req.url可能不包含主机部分，我们需要正确解析路径
-  // 路由配置将 /api/* 映射到此函数，所以路径应以预期的API端点开始
-  const { pathname } = new URL('https://example.com' + req.url);
-  const pathParts = pathname.split('/').filter(Boolean);
+  // 在Vercel中，由于路由重写，我们需要从原始URL路径中提取真实的API路径
+  // vercel.json中的路由: "/api/(.*)" -> "/api/v1.js" 会重写请求
+  // 例如：/api/users/123 -> /api/v1.js (但原始路径信息在req.url中)
 
-  console.log('路径部分:', pathParts);
+  // 从请求URL中提取路径部分，移除查询参数
+  const url = new URL('https://example.com' + req.url);
+  const pathname = url.pathname;
 
-  // 由于路由配置是 /api/(.*) -> /api/v1.js，路径部分应直接是API端点部分
-  // 例如，对于 /api/verify-password，pathParts 应该是 ['api', 'verify-password']
-  // 对于 /api/users/123，pathParts 应该是 ['api', 'users', '123']
+  // 由于路由配置是 /api/(.*) -> /api/v1.js，我们需要移除 /api/ 前缀来获取实际API端点
+  let actualPath = pathname;
+  if (actualPath.startsWith('/api/')) {
+    actualPath = actualPath.substring(4); // 移除 '/api' 前缀
+  }
 
-  // 验证并移除 'api' 前缀
-  if (pathParts[0] !== 'api') {
-    console.log('路径验证失败 - 不是API请求');
+  const pathParts = actualPath.split('/').filter(Boolean);
+  console.log('解析后的路径部分:', pathParts);
+  console.log('原始路径:', pathname);
+  console.log('处理后的路径:', actualPath);
+
+  // 验证路径，确保至少有一个API端点部分
+  if (pathParts.length === 0) {
+    console.log('路径验证失败 - 没有API端点');
     return res.status(404).json({ error: 'API 端点不存在' });
   }
 
-  // 移除 'api' 部分，获取实际的API路径
-  const apiParts = pathParts.slice(1); // 例如 ['verify-password'], ['users'], ['users', '123'] 等
+  const apiParts = pathParts; // 现在apiParts就是实际的API端点部分
   console.log('API路径部分:', apiParts);
 
   try {
+    // 检查数据库模块是否可用
+    let dbModule;
+    try {
+      // 使用统一的数据库模块 from api/_lib/db.js (Redis-based with Gist backup)
+      const dbModuleRef = await import('./_lib/db.js');
+      dbModule = dbModuleRef.db;
+      console.log('数据库模块加载成功');
+    } catch (dbError) {
+      console.error('数据库模块加载失败:', dbError);
+      return res.status(500).json({ error: '数据库模块初始化失败', details: dbError.message });
+    }
+
     if (apiParts[0] === 'verify-password') {
       console.log('处理密码验证请求');
       // 处理密码验证
@@ -57,8 +75,13 @@ export default async function handler(req, res) {
         // /api/users - 获取/添加用户
         if (req.method === 'GET') {
           console.log('获取用户列表');
-          const users = await db.getUsers();
-          return res.json(users);
+          try {
+            const users = await dbModule.getUsers();
+            return res.json(users);
+          } catch (error) {
+            console.error('获取用户列表失败:', error);
+            return res.status(500).json({ error: '获取用户列表失败', details: error.message });
+          }
         } else if (req.method === 'POST') {
           console.log('添加用户');
           const { names } = req.body || {};
@@ -67,24 +90,30 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: '用户名列表不能为空' });
           }
 
-          const { validateUser } = await import('../backend/utils.js');
-          const createdUsers = [];
-          for (const name of names) {
-            if (!validateUser({ name })) {
-              console.log(`用户名 "${name}" 无效`);
-              return res.status(400).json({ error: `用户名 "${name}" 无效` });
+          try {
+            const utilsModule = await import('../backend/utils.js');
+            const { validateUser } = utilsModule;
+            const createdUsers = [];
+            for (const name of names) {
+              if (!validateUser({ name })) {
+                console.log(`用户名 "${name}" 无效`);
+                return res.status(400).json({ error: `用户名 "${name}" 无效` });
+              }
+              const user = await dbModule.addUser({
+                name,
+                isRead: false,
+                unreadDays: 1,
+                frozen: false,
+                createdAt: new Date().toISOString()
+              });
+              createdUsers.push(user);
             }
-            const user = await db.addUser({
-              name,
-              isRead: false,
-              unreadDays: 1,
-              frozen: false,
-              createdAt: new Date().toISOString()
-            });
-            createdUsers.push(user);
+            console.log(`成功创建 ${createdUsers.length} 个用户`);
+            return res.status(201).json(createdUsers);
+          } catch (error) {
+            console.error('添加用户失败:', error);
+            return res.status(500).json({ error: '添加用户失败', details: error.message });
           }
-          console.log(`成功创建 ${createdUsers.length} 个用户`);
-          return res.status(201).json(createdUsers);
         } else {
           console.log('用户列表 - 错误的HTTP方法:', req.method);
           return res.status(405).json({ error: '方法不允许' });
@@ -94,30 +123,47 @@ export default async function handler(req, res) {
         const userId = apiParts[1];
         console.log(`处理用户ID: ${userId}`);
 
+        // 注意：dbModule 没有 getUserById 方法，使用 getUsers 并过滤
         if (req.method === 'GET') {
           console.log(`获取用户 ${userId}`);
-          const user = await db.getUserById(userId);
-          if (!user) {
-            console.log(`用户 ${userId} 不存在`);
-            return res.status(404).json({ error: '用户不存在' });
+          try {
+            const users = await dbModule.getUsers();
+            const user = users.find(u => u.id == userId);
+            if (!user) {
+              console.log(`用户 ${userId} 不存在`);
+              return res.status(404).json({ error: '用户不存在' });
+            }
+            return res.json(user);
+          } catch (error) {
+            console.error('获取用户失败:', error);
+            return res.status(500).json({ error: '获取用户失败', details: error.message });
           }
-          return res.json(user);
         } else if (req.method === 'PUT') {
           console.log(`更新用户 ${userId}`);
-          const updatedUser = await db.updateUser(userId, req.body);
-          if (!updatedUser) {
-            console.log(`用户 ${userId} 不存在`);
-            return res.status(404).json({ error: '用户不存在' });
+          try {
+            const updatedUser = await dbModule.updateUser(userId, req.body);
+            if (!updatedUser) {
+              console.log(`用户 ${userId} 不存在`);
+              return res.status(404).json({ error: '用户不存在' });
+            }
+            return res.json(updatedUser);
+          } catch (error) {
+            console.error('更新用户失败:', error);
+            return res.status(500).json({ error: '更新用户失败', details: error.message });
           }
-          return res.json(updatedUser);
         } else if (req.method === 'DELETE') {
           console.log(`删除用户 ${userId}`);
-          const result = await db.deleteUser(userId);
-          if (!result) {
-            console.log(`用户 ${userId} 不存在`);
-            return res.status(404).json({ error: '用户不存在' });
+          try {
+            const result = await dbModule.deleteUser(userId);
+            if (!result) {
+              console.log(`用户 ${userId} 不存在`);
+              return res.status(404).json({ error: '用户不存在' });
+            }
+            return res.json({ message: '用户删除成功' });
+          } catch (error) {
+            console.error('删除用户失败:', error);
+            return res.status(500).json({ error: '删除用户失败', details: error.message });
           }
-          return res.json({ message: '用户删除成功' });
         } else {
           console.log(`用户 ${userId} - 错误的HTTP方法:`, req.method);
           return res.status(405).json({ error: '方法不允许' });
@@ -129,9 +175,16 @@ export default async function handler(req, res) {
       if (apiParts.length === 1 && req.method === 'GET') {
         // /api/statistics - 获取统计信息
         console.log('获取统计信息');
-        const users = await db.getUsers();
-        const statsText = generateStatisticsText(users);
-        return res.json({ statistics: statsText });
+        try {
+          const users = await dbModule.getUsers();
+          const utilsModule = await import('../backend/utils.js');
+          const { generateStatisticsText } = utilsModule;
+          const statsText = generateStatisticsText(users);
+          return res.json({ statistics: statsText });
+        } catch (error) {
+          console.error('获取统计信息失败:', error);
+          return res.status(500).json({ error: '获取统计信息失败', details: error.message });
+        }
       } else if (apiParts.length === 1 && req.method === 'POST') {
         // /api/send-statistics - 发送统计信息
         console.log('发送统计信息');
@@ -159,29 +212,34 @@ export default async function handler(req, res) {
       }
 
       console.log('运行定时任务');
-      const users = await db.getUsers();
-      const config = await db.getConfig();
-      const maxUnreadDays = config.maxUnreadDays || 7;
+      try {
+        const users = await dbModule.getUsers();
+        const config = await dbModule.getConfig();
+        const maxUnreadDays = config.maxUnreadDays || 7;
 
-      for (const user of users) {
-        if (!user.frozen) {
-          if (!user.isRead) {
-            user.unreadDays++;
-            if (user.unreadDays >= maxUnreadDays) {
-              user.frozen = true;
-              user.unreadDays = maxUnreadDays;
+        for (const user of users) {
+          if (!user.frozen) {
+            if (!user.isRead) {
+              user.unreadDays++;
+              if (user.unreadDays >= maxUnreadDays) {
+                user.frozen = true;
+                user.unreadDays = maxUnreadDays;
+              }
+            } else {
+              user.isRead = false;
+              user.unreadDays = 1;
             }
-          } else {
-            user.isRead = false;
-            user.unreadDays = 1;
+            await dbModule.updateUser(user.id, { isRead: user.isRead, unreadDays: user.unreadDays, frozen: user.frozen });
           }
-          await db.updateUser(user.id, { isRead: user.isRead, unreadDays: user.unreadDays, frozen: user.frozen });
         }
-      }
-      await db.updateLastResetTime();
-      console.log('定时任务完成');
+        await dbModule.updateLastResetTime();
+        console.log('定时任务完成');
 
-      return res.json({ message: 'Cron job executed successfully', result: users.length });
+        return res.json({ message: 'Cron job executed successfully', result: users.length });
+      } catch (error) {
+        console.error('定时任务执行失败:', error);
+        return res.status(500).json({ error: '定时任务执行失败', details: error.message });
+      }
     } else {
       console.log('未知API端点:', apiParts[0]);
       return res.status(404).json({ error: 'API 端点不存在' });

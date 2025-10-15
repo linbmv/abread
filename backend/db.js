@@ -1,6 +1,6 @@
 
 // /backend/db.js - 数据存储逻辑 (使用Vercel Edge Config + GitHub Gist备用方案)
-const { get, set } = require('@vercel/edge-config');
+const edgeConfig = require('@vercel/edge-config');
 
 // Edge Config键名常量
 const USERS_KEY = 'bible-reading-users';
@@ -77,33 +77,47 @@ async function writeToGist(data) {
 
 // 主要数据访问函数
 async function readData() {
-  try {
-    // 首先尝试从Edge Config读取
-    const users = await get(USERS_KEY);
-    const config = await get(CONFIG_KEY);
-
-    return {
-      users: users || [],
-      config: config || { resetHour: 4, timezone: 'Asia/Shanghai', maxUnreadDays: 7, lastReset: null }
-    };
-  } catch (edgeError) {
-    console.warn('Edge Config读取失败，尝试从Gist读取:', edgeError.message);
-    // 如果Edge Config失败，从Gist读取
-    return await readFromGist();
+  // 首先尝试从Gist读取（因为那是我们写入的地方）
+  if (GIST_ID && GIST_TOKEN) {
+    try {
+      return await readFromGist();
+    } catch (gistError) {
+      console.warn('从Gist读取失败，尝试从Edge Config读取:', gistError.message);
+    }
   }
+
+  try {
+    // 检查 edgeConfig 是否正确导入且支持 get 方法
+    if (typeof edgeConfig.get === 'function') {
+      // 如果Gist不可用或未配置，尝试从Edge Config读取
+      const users = await edgeConfig.get(USERS_KEY);
+      const config = await edgeConfig.get(CONFIG_KEY);
+
+      return {
+        users: users || [],
+        config: config || { resetHour: 4, timezone: 'Asia/Shanghai', maxUnreadDays: 7, lastReset: null }
+      };
+    } else {
+      console.warn('Edge Config get方法不可用');
+    }
+  } catch (edgeError) {
+    console.warn('Edge Config读取失败:', edgeError.message);
+  }
+
+  // 如果都失败，返回默认值
+  return { users: [], config: { resetHour: 4, timezone: 'Asia/Shanghai', maxUnreadDays: 7, lastReset: null } };
 }
 
 async function writeData(users, config) {
   try {
-    // 同时写入Edge Config和Gist
-    await Promise.allSettled([
-      set(USERS_KEY, users),
-      set(CONFIG_KEY, config)
-    ]);
-
-    // 如果配置了GIST，也写入Gist作为备份
+    // Vercel Edge Config是只读的，不支持写入操作
+    // 使用GitHub Gist作为主要存储方案
     if (GIST_ID && GIST_TOKEN) {
       await writeToGist({ users, config });
+    } else {
+      // 如果没有配置Gist，则尝试使用其他方式（比如本地文件存储）
+      // 但Vercel函数环境中本地文件存储是临时的，这里记录警告
+      console.warn('GIST_ID 或 GIST_TOKEN 未配置，数据无法持久化存储');
     }
   } catch (error) {
     console.error('写入数据失败:', error);

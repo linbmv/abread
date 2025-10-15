@@ -1,5 +1,5 @@
 // api/cron.js - 定时任务
-import { db } from '../backend/db.js';
+import { db } from './_lib/db.js';
 import { generateStatisticsText } from '../backend/utils.js';
 
 export default async function handler(req, res) {

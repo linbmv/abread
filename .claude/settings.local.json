@@ -10,7 +10,9 @@
       "Bash(npm run dev)",
       "Bash(npm start)",
       "Bash(npm install dotenv cors node-cron)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Read(//c/Users/LinHome/Documents/Github/**)",
+      "Bash(npm run build-frontend)"
     ],
     "deny": [],
     "ask": []

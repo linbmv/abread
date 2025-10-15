@@ -1,7 +1,44 @@
 // vercel-build.js - Vercel 构建入口
 const { execSync } = require('child_process');
-const fs = require('fs-extra');
+const fs = require('fs');
 const path = require('path');
+
+// 用 Node.js 内置函数实现 fs-extra 的功能
+function copyDir(src, dest) {
+  if (!fs.existsSync(dest)) {
+    fs.mkdirSync(dest, { recursive: true });
+  }
+
+  const items = fs.readdirSync(src);
+
+  for (const item of items) {
+    const srcPath = path.join(src, item);
+    const destPath = path.join(dest, item);
+
+    if (fs.statSync(srcPath).isDirectory()) {
+      copyDir(srcPath, destPath);
+    } else {
+      fs.copyFileSync(srcPath, destPath);
+    }
+  }
+}
+
+function removeDir(dir) {
+  if (fs.existsSync(dir)) {
+    const items = fs.readdirSync(dir);
+
+    for (const item of items) {
+      const itemPath = path.join(dir, item);
+      if (fs.statSync(itemPath).isDirectory()) {
+        removeDir(itemPath);
+      } else {
+        fs.unlinkSync(itemPath);
+      }
+    }
+
+    fs.rmdirSync(dir);
+  }
+}
 
 async function build() {
   console.log('开始构建项目...');
@@ -25,10 +62,10 @@ async function build() {
   const destDir = path.join(__dirname, 'dist');
 
   if (fs.existsSync(destDir)) {
-    fs.removeSync(destDir);
+    removeDir(destDir);
   }
 
-  fs.copySync(sourceDir, destDir);
+  copyDir(sourceDir, destDir);
   console.log('构建完成！');
 }
 
