@@ -1,6 +1,43 @@
 const { execSync } = require('child_process');
-const fs = require('fs-extra');
+const fs = require('fs');
 const path = require('path');
+
+// 用 Node.js 内置函数实现 fs-extra 的功能
+function copyDir(src, dest) {
+  if (!fs.existsSync(dest)) {
+    fs.mkdirSync(dest, { recursive: true });
+  }
+
+  const items = fs.readdirSync(src);
+
+  for (const item of items) {
+    const srcPath = path.join(src, item);
+    const destPath = path.join(dest, item);
+
+    if (fs.statSync(srcPath).isDirectory()) {
+      copyDir(srcPath, destPath);
+    } else {
+      fs.copyFileSync(srcPath, destPath);
+    }
+  }
+}
+
+function removeDir(dir) {
+  if (fs.existsSync(dir)) {
+    const items = fs.readdirSync(dir);
+
+    for (const item of items) {
+      const itemPath = path.join(dir, item);
+      if (fs.statSync(itemPath).isDirectory()) {
+        removeDir(itemPath);
+      } else {
+        fs.unlinkSync(itemPath);
+      }
+    }
+
+    fs.rmdirSync(dir);
+  }
+}
 
 // 运行前端构建
 console.log('构建脚本开始执行');
@@ -44,9 +81,9 @@ const destDir = path.join(__dirname, 'dist');
 // 确保目标目录存在
 if (fs.existsSync(destDir)) {
   console.log('删除现有的 dist 目录');
-  fs.removeSync(destDir);
+  removeDir(destDir);
 }
 
-fs.copySync(sourceDir, destDir);
+copyDir(sourceDir, destDir);
 console.log('构建完成，文件已复制到 dist 目录');
 console.log('根目录 dist 内容:', fs.readdirSync('dist').join(', '));
