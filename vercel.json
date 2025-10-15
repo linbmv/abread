@@ -11,10 +11,6 @@
   ],
   "rewrites": [
     {
-      "source": "/api/verify-password",
-      "destination": "/api/verify-password.js"
-    },
-    {
       "source": "/api/users",
       "destination": "/api/users.js"
     },
