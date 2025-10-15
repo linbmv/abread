@@ -2,6 +2,13 @@
   "version": 2,
   "builds": [
     {
+      "src": "api/**/*.js",
+      "use": "@vercel/edge",
+      "config": {
+        "includeFiles": ["api/_lib/**"]
+      }
+    },
+    {
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
