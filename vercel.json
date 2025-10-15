@@ -9,28 +9,6 @@
       }
     }
   ],
-  "rewrites": [
-    {
-      "source": "/api/users",
-      "destination": "/api/users.js"
-    },
-    {
-      "source": "/api/users/:path*",
-      "destination": "/api/users.js"
-    },
-    {
-      "source": "/api/statistics",
-      "destination": "/api/statistics.js"
-    },
-    {
-      "source": "/api/statistics/send",
-      "destination": "/api/statistics-send.js"
-    },
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1.js"
-    }
-  ],
   "crons": [
     {
       "path": "/api/cron",
