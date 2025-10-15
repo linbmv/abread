@@ -9,19 +9,25 @@ export default async function handler(req, res) {
   console.log('请求方法:', req.method);
   console.log('请求头:', JSON.stringify(req.headers, null, 2));
 
-  const { pathname } = new URL(req.url, `https://${req.headers.host}`);
+  // 在Vercel中，req.url可能不包含主机部分，我们需要正确解析路径
+  // 路由配置将 /api/* 映射到此函数，所以路径应以预期的API端点开始
+  const { pathname } = new URL('https://example.com' + req.url);
   const pathParts = pathname.split('/').filter(Boolean);
 
   console.log('路径部分:', pathParts);
 
-  // 基础路径验证
-  if (pathParts[0] !== 'api' || !pathParts[1]) {
-    console.log('路径验证失败 - 不是API请求或缺少版本');
+  // 由于路由配置是 /api/(.*) -> /api/v1.js，路径部分应直接是API端点部分
+  // 例如，对于 /api/verify-password，pathParts 应该是 ['api', 'verify-password']
+  // 对于 /api/users/123，pathParts 应该是 ['api', 'users', '123']
+
+  // 验证并移除 'api' 前缀
+  if (pathParts[0] !== 'api') {
+    console.log('路径验证失败 - 不是API请求');
     return res.status(404).json({ error: 'API 端点不存在' });
   }
 
-  // 移除 'api' 和版本部分
-  const apiParts = pathParts.slice(2); // 例如 ['users'], ['users', '123'], ['verify-password'] 等
+  // 移除 'api' 部分，获取实际的API路径
+  const apiParts = pathParts.slice(1); // 例如 ['verify-password'], ['users'], ['users', '123'] 等
   console.log('API路径部分:', apiParts);
 
   try {
