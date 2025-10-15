@@ -1,6 +1,6 @@
 
 // /api/_lib/db.js - 数据存储逻辑 (使用Vercel Edge Config + GitHub Gist备用方案)
-import { createClient } from '@vercel/edge-config';
+const { createClient } = require('@vercel/edge-config');
 
 const { get, set } = createClient(process.env.EDGE_CONFIG);
 
@@ -113,7 +113,7 @@ async function writeData(users, config) {
   }
 }
 
-export const db = {
+const db = {
   async getUsers() {
     try {
       const data = await readData();
@@ -200,3 +200,5 @@ export const db = {
     }
   }
 };
+
+module.exports = { db };
