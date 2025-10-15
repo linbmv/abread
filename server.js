@@ -1,19 +1,192 @@
-// 简单的Express服务器用于在Vercel上部署SPA应用
+require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const path = require('path');
+const cron = require('node-cron');
+
+// 根据环境选择数据库实现
+const isVercel = process.env.VERCEL || process.env.EDGE_CONFIG; // Vercel环境变量
+let dbModule;
+if (isVercel) {
+  // Vercel环境使用Edge Config
+  ({ db: dbModule } = require('./backend/db'));
+} else {
+  // 本地开发环境使用本地数据库
+  ({ db: dbModule } = require('./backend/local-db'));
+}
+
+const { generateStatisticsText, validateUser } = require('./backend/utils');
+
 const app = express();
+app.use(cors());
+app.use(express.json());
 
 // 服务构建后的静态文件
 app.use(express.static(path.join(__dirname, 'frontend/dist')));
 
-// API路由将由Vercel的API函数处理，这里只处理SPA路由
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend/dist', 'index.html'));
+// --- API 路由 ---
+// 获取所有用户
+app.get('/api/users', async (req, res) => {
+    try {
+        const users = await dbModule.getUsers();
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ error: '获取用户列表失败' });
+    }
 });
 
-const PORT = process.env.PORT || 3000;
+// 获取单个用户
+app.get('/api/users/:id', async (req, res) => {
+    try {
+        const user = await dbModule.getUserById(req.params.id);
+        if (!user) {
+            return res.status(404).json({ error: '用户不存在' });
+        }
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ error: '获取用户失败' });
+    }
+});
+
+// 添加用户
+app.post('/api/users', async (req, res) => {
+    try {
+        const { names } = req.body;
+        if (!names || !Array.isArray(names) || names.length === 0) {
+            return res.status(400).json({ error: '用户名列表不能为空' });
+        }
+
+        const createdUsers = [];
+        for (const name of names) {
+            if (!validateUser({ name })) {
+                return res.status(400).json({ error: `用户名 "${name}" 无效` });
+            }
+            const user = await dbModule.addUser({ name, isRead: false, unreadDays: 1, frozen: false, createdAt: new Date().toISOString() });
+            createdUsers.push(user);
+        }
+        res.status(201).json(createdUsers);
+    } catch (error) {
+        res.status(500).json({ error: '添加用户失败' });
+    }
+});
+
+// 更新用户
+app.put('/api/users/:id', async (req, res) => {
+    try {
+        const updatedUser = await dbModule.updateUser(req.params.id, req.body);
+        if (!updatedUser) {
+            return res.status(404).json({ error: '用户不存在' });
+        }
+        res.json(updatedUser);
+    } catch (error) {
+        res.status(500).json({ error: '更新用户失败' });
+    }
+});
+
+// 删除用户
+app.delete('/api/users/:id', async (req, res) => {
+    try {
+        const result = await dbModule.deleteUser(req.params.id);
+        if (!result) {
+            return res.status(404).json({ error: '用户不存在' });
+        }
+        res.json({ message: '用户删除成功' });
+    } catch (error) {
+        res.status(500).json({ error: '删除用户失败' });
+    }
+});
+
+// 获取统计信息
+app.get('/api/statistics', async (req, res) => {
+    try {
+        const users = await dbModule.getUsers();
+        const statsText = generateStatisticsText(users);
+        res.json({ statistics: statsText });
+    } catch (error) {
+        res.status(500).json({ error: '获取统计信息失败' });
+    }
+});
+
+// 发送统计信息
+app.post('/api/send-statistics', async (req, res) => {
+    try {
+        // 这里可以添加发送到WhatsApp等的逻辑
+        const { statistics } = req.body;
+        console.log('Sending statistics:', statistics);
+        res.json({ success: true, message: '统计信息已发送' });
+    } catch (error) {
+        res.status(500).json({ error: '发送统计信息失败' });
+    }
+});
+
+// 密码验证
+app.post('/api/verify-password', async (req, res) => {
+    try {
+        const { password } = req.body;
+        // 从环境变量获取密码，如果不存在则使用默认密码
+        const correctPassword = process.env.APP_PASSWORD || 'admin123';
+
+        if (password === correctPassword) {
+            res.json({ valid: true });
+        } else {
+            res.status(401).json({ valid: false, error: '密码错误' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: '密码验证失败' });
+    }
+});
+
+// --- 定时任务 ---
+async function runCronJob() {
+    console.log('Running cron job at', new Date().toISOString());
+    const users = await dbModule.getUsers();
+    const config = await dbModule.getConfig();
+    const maxUnreadDays = config.maxUnreadDays || 7;
+
+    for (const user of users) {
+        if (!user.frozen) {
+            if (!user.isRead) {
+                user.unreadDays++;
+                if (user.unreadDays >= maxUnreadDays) {
+                    user.frozen = true;
+                    user.unreadDays = maxUnreadDays;
+                }
+            } else {
+                user.isRead = false;
+                user.unreadDays = 1;
+            }
+            await dbModule.updateUser(user.id, { isRead: user.isRead, unreadDays: user.unreadDays, frozen: user.frozen });
+        }
+    }
+    await dbModule.updateLastResetTime();
+    console.log('Cron job finished.');
+    return users; // Return for testing purposes
+}
+
+// 每天凌晨4点执行
+cron.schedule('0 4 * * *', runCronJob, {
+    timezone: process.env.TIMEZONE || 'Asia/Shanghai'
+});
+
+// Test endpoint to manually trigger cron job for testing
+app.post('/api/test-cron', async (req, res) => {
+    try {
+        const result = await runCronJob();
+        res.json({ message: 'Cron job executed successfully', result });
+    } catch (error) {
+        console.error('Cron job failed:', error);
+        res.status(500).json({ error: 'Cron job failed' });
+    }
+});
+
+// SPA路由 - 在所有API路由之后
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend/dist', 'index.html'));
+});
+
+const PORT = process.env.PORT || 3003;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });
 
 module.exports = app;
