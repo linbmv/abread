@@ -15,9 +15,9 @@
     },
     {
       "src": "package.json",
-      "use": "@vercel/node",
+      "use": "@vercel/static-build",
       "config": {
-        "buildCommand": "node build-script.js"
+        "distDir": "dist"
       }
     }
   ],
@@ -32,7 +32,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/dist/index.html",
+      "dest": "/index.html",
       "headers": {
         "Cache-Control": "no-cache, no-store, must-revalidate"
       }

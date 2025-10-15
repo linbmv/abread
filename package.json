@@ -4,9 +4,10 @@
   "description": "Bible Reading Tracker",
   "main": "server.js",
   "scripts": {
-    "build": "npm run build-frontend",
+    "build": "node build-script.js",
     "build-frontend": "node build-script.js",
     "start": "node server.js",
+    "dev": "node server.js",
     "test-redis": "node test-redis.js"
   },
   "dependencies": {
