@@ -21,8 +21,16 @@ function initEdgeConfig() {
     // 在Node.js环境中，我们可能需要动态导入
     const { createClient } = require('@vercel/edge-config');
     edgeConfigClient = createClient(process.env.EDGE_CONFIG);
-    ({ get, set } = edgeConfigClient);
-    console.log('Edge Config客户端初始化成功');
+
+    // 检查客户端是否正确创建
+    if (edgeConfigClient && edgeConfigClient.get && edgeConfigClient.set) {
+      ({ get, set } = edgeConfigClient);
+      console.log('Edge Config客户端初始化成功');
+      console.log('get函数可用:', typeof get === 'function');
+      console.log('set函数可用:', typeof set === 'function');
+    } else {
+      console.error('Edge Config客户端未正确初始化');
+    }
   } catch (error) {
     console.error('Edge Config初始化失败，将使用Gist作为数据存储:', error.message);
   }
@@ -149,6 +157,8 @@ async function writeData(users, config) {
   console.log('要写入的用户数量:', users.length);
   console.log('Edge Config可用用于写入:', !!(set && process.env.EDGE_CONFIG));
   console.log('Gist配置可用用于写入:', !!(GIST_ID && GIST_TOKEN));
+  console.log('set函数类型:', typeof set);
+  console.log('get函数类型:', typeof get);
 
   // 优先写入Edge Config（更快的写入速度）
   const writePromises = [];
@@ -164,6 +174,8 @@ async function writeData(users, config) {
         throw error;
       })
     );
+  } else {
+    console.log('跳过Edge Config写入（客户端未正确初始化）');
   }
 
   // 同时写入Gist作为备份
@@ -177,7 +189,7 @@ async function writeData(users, config) {
     );
   }
 
-  // 等待主要存储（Edge Config）写入完成
+  // 等待写入完成
   if (writePromises.length > 0) {
     try {
       // 等待Edge Config写入（如果存在）
