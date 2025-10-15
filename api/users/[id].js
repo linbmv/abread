@@ -20,11 +20,13 @@ module.exports = async (req, res) => {
   try {
     // 从URL参数中提取用户ID
     const { id } = req.query;
-    const userId = id;
 
-    if (!userId) {
+    if (!id) {
       return res.status(400).json({ error: '用户ID不能为空' });
     }
+
+    // 尝试将ID转换为数字（因为用户ID是使用Date.now()创建的数字ID）
+    const userId = isNaN(id) ? id : Number(id);
 
     if (req.method === 'PUT') {
       const updates = req.body;
