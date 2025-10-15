@@ -1,10 +1,17 @@
-// api/users/[id].js - 获取、更新、删除单个用户
-import { db } from '../../backend/db.js';
+// api/user-id.js - 通过查询参数处理单个用户
+import { db } from '../backend/db.js';
 
 export default async function handler(req, res) {
-  const { id } = req.query;
+  const { id, method } = req.query;
 
-  if (req.method === 'GET') {
+  if (!id) {
+    return res.status(400).json({ error: '用户ID是必需的' });
+  }
+
+  // 根据请求方法确定操作
+  const requestMethod = method || req.method;
+
+  if (requestMethod === 'GET') {
     try {
       const user = await db.getUserById(id);
       if (!user) {
@@ -14,7 +21,7 @@ export default async function handler(req, res) {
     } catch (error) {
       res.status(500).json({ error: '获取用户失败' });
     }
-  } else if (req.method === 'PUT') {
+  } else if (requestMethod === 'PUT') {
     try {
       const updatedUser = await db.updateUser(id, req.body);
       if (!updatedUser) {
@@ -24,7 +31,7 @@ export default async function handler(req, res) {
     } catch (error) {
       res.status(500).json({ error: '更新用户失败' });
     }
-  } else if (req.method === 'DELETE') {
+  } else if (requestMethod === 'DELETE') {
     try {
       const result = await db.deleteUser(id);
       if (!result) {

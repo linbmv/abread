@@ -1,0 +1,186 @@
+{
+  "users": [
+    {
+      "id": "1760511531024",
+      "name": "Bea",
+      "isRead": false,
+      "unreadDays": 2,
+      "frozen": false,
+      "createdAt": "2025-10-15T06:58:51.023Z"
+    },
+    {
+      "id": "1760511531027",
+      "name": "Jolvin",
+      "isRead": false,
+      "unreadDays": 1,
+      "frozen": false,
+      "createdAt": "2025-10-15T06:58:51.026Z"
+    },
+    {
+      "id": "1760511531028",
+      "name": "在熙",
+      "isRead": false,
+      "unreadDays": 1,
+      "frozen": false,
+      "createdAt": "2025-10-15T06:58:51.028Z"
+    },
+    {
+      "id": "1760511531030",
+      "name": "施广云",
+      "isRead": false,
+      "unreadDays": 1,
+      "frozen": false,
+      "createdAt": "2025-10-15T06:58:51.029Z"
+    },
+    {
+      "id": "1760511531031",
+      "name": "旺卿",
+      "isRead": false,
+      "unreadDays": 1,
+      "frozen": false,
+      "createdAt": "2025-10-15T06:58:51.030Z"
+    },
+    {
+      "id": "1760511531032",
+      "name": "杨恩华",
+      "isRead": false,
+      "unreadDays": 1,
+      "frozen": false,
+      "createdAt": "2025-10-15T06:58:51.032Z"
+    },
+    {
+      "id": "1760511531034",
+      "name": "林傲杰",
+      "isRead": false,
+      "unreadDays": 1,
+      "frozen": false,
+      "createdAt": "2025-10-15T06:58:51.033Z"
+    },
+    {
+      "id": "1760511531036",
+      "name": "林宏",
+      "isRead": false,
+      "unreadDays": 1,
+      "frozen": false,
+      "createdAt": "2025-10-15T06:58:51.036Z"
+    },
+    {
+      "id": "1760511531038",
+      "name": "林芳",
+      "isRead": false,
+      "unreadDays": 1,
+      "frozen": false,
+      "createdAt": "2025-10-15T06:58:51.037Z"
+    },
+    {
+      "id": "1760511531039",
+      "name": "林黎临",
+      "isRead": false,
+      "unreadDays": 1,
+      "frozen": false,
+      "createdAt": "2025-10-15T06:58:51.039Z"
+    },
+    {
+      "id": "1760511531041",
+      "name": "王可",
+      "isRead": false,
+      "unreadDays": 1,
+      "frozen": false,
+      "createdAt": "2025-10-15T06:58:51.040Z"
+    },
+    {
+      "id": "1760511531042",
+      "name": "王志宇",
+      "isRead": false,
+      "unreadDays": 1,
+      "frozen": false,
+      "createdAt": "2025-10-15T06:58:51.042Z"
+    },
+    {
+      "id": "1760511531043",
+      "name": "蔡文丰",
+      "isRead": true,
+      "unreadDays": 0,
+      "frozen": false,
+      "createdAt": "2025-10-15T06:58:51.043Z"
+    },
+    {
+      "id": "1760511531044",
+      "name": "蔡维爱",
+      "isRead": false,
+      "unreadDays": 1,
+      "frozen": false,
+      "createdAt": "2025-10-15T06:58:51.044Z"
+    },
+    {
+      "id": "1760511531045",
+      "name": "陈子枫",
+      "isRead": false,
+      "unreadDays": 1,
+      "frozen": false,
+      "createdAt": "2025-10-15T06:58:51.045Z"
+    },
+    {
+      "id": "1760511531047",
+      "name": "龚成鹏",
+      "isRead": false,
+      "unreadDays": 1,
+      "frozen": false,
+      "createdAt": "2025-10-15T06:58:51.046Z"
+    },
+    {
+      "id": "1760511531048",
+      "name": "倪小珍",
+      "isRead": false,
+      "unreadDays": 1,
+      "frozen": false,
+      "createdAt": "2025-10-15T06:58:51.047Z"
+    },
+    {
+      "id": "1760511531049",
+      "name": "刘霞",
+      "isRead": false,
+      "unreadDays": 1,
+      "frozen": false,
+      "createdAt": "2025-10-15T06:58:51.048Z"
+    },
+    {
+      "id": "1760511531050",
+      "name": "吕庆",
+      "isRead": false,
+      "unreadDays": 1,
+      "frozen": false,
+      "createdAt": "2025-10-15T06:58:51.049Z"
+    },
+    {
+      "id": "1760511531051",
+      "name": "杨起悦",
+      "isRead": false,
+      "unreadDays": 1,
+      "frozen": false,
+      "createdAt": "2025-10-15T06:58:51.051Z"
+    },
+    {
+      "id": "1760511531053",
+      "name": "红英",
+      "isRead": false,
+      "unreadDays": 1,
+      "frozen": false,
+      "createdAt": "2025-10-15T06:58:51.052Z"
+    },
+    {
+      "id": "1760511531054",
+      "name": "杨起纳",
+      "isRead": false,
+      "unreadDays": 5,
+      "frozen": false,
+      "createdAt": "2025-10-15T06:58:51.053Z"
+    }
+  ],
+  "config": {
+    "resetHour": 4,
+    "timezone": "Asia/Shanghai",
+    "maxUnreadDays": 7,
+    "lastReset": null
+  }
+}

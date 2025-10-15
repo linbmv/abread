@@ -6,7 +6,11 @@
       "Bash(git push)",
       "Bash(git push:*)",
       "Bash(npm run build)",
-      "Bash(npm install)"
+      "Bash(npm install)",
+      "Bash(npm run dev)",
+      "Bash(npm start)",
+      "Bash(npm install dotenv cors node-cron)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

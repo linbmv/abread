@@ -2,22 +2,25 @@
   "version": 2,
   "builds": [
     {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "package.json",
       "use": "@vercel/node",
       "config": {
-        "includeFiles": ["dist/**", "api/**", "backend/**", "server.js", "node_modules/**"],
-        "bundleNodeModules": true
+        "buildCommand": "node build-script.js"
       }
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/server.js"
+      "dest": "/api/$1.js"
     },
     {
       "src": "/(.*)",
-      "dest": "/server.js"
+      "dest": "/dist/index.html"
     }
   ],
   "crons": [
