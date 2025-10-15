@@ -96,7 +96,7 @@ async function readData() {
 async function writeData(users, config) {
   try {
     // 同时写入Edge Config和Gist
-    await Promise.allSettled([
+    await Promise.all([
       set(USERS_KEY, users),
       set(CONFIG_KEY, config)
     ]);
