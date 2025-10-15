@@ -1,8 +1,8 @@
-export const runtime = 'edge';
-
+/* eslint-disable no-undef */
 // /api/cron.js - Vercel Cron Job 处理器
-import { db } from './_lib/db.js';
-import { generateStatisticsText } from './_lib/utils.js';
+
+const { db } = require('./_lib/db.js');
+const { generateStatisticsText } = require('./_lib/utils.js');
 
 // 核心业务逻辑：重置用户状态
 async function resetUserStates() {
@@ -38,49 +38,65 @@ async function getReadingPlan() {
         const response = await fetch('https://gist.githubusercontent.com/linbmv/8adb195011a6422d4ee40f773f32a8fa/raw/bible_reading_plan.txt');
         if (!response.ok) return '';
         let text = await response.text();
-        return text.replace(/[
-]+/g, ' ').trim();
+        return text.replace(/[\r\n]+/g, ' ').trim();
     } catch (error) {
         console.error('获取读经计划失败:', error);
         return '';
     }
 }
 
-// 主处理函数
-export async function GET(request) {
-    try {
-        // 在Vercel环境中，可以通过Authorization Header来保护Cron Job
-        const authHeader = request.headers.get('authorization');
-        if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-            return new Response('Unauthorized', { status: 401 });
-        }
+// Vercel Serverless Function for cron job
+module.exports = async (req, res) => {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-        // 1. 执行用户状态重置
-        await resetUserStates();
+  // Handle preflight request
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
 
-        // 2. 生成统计信息
-        const users = await db.getUsers();
-        let statsText = generateStatisticsText(users);
+  // Only allow GET requests
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
-        // 3. 获取并附加读经计划
-        const plan = await getReadingPlan();
-        if (plan) {
-            statsText += `
-今日读经计划：${plan}`;
-        }
-
-        // 4. (可选) 自动发送通知
-        // 如果需要，可以在这里调用notification API
-        // 例如：await fetch(`${process.env.VERCEL_URL}/api/notification`, ...)
-
-        return new Response(`Cron job executed successfully at ${new Date().toISOString()}
-Statistics:
-${statsText}`, {
-            status: 200,
-        });
-
-    } catch (error) {
-        console.error('Cron job failed:', error);
-        return new Response('Cron job failed', { status: 500 });
+  try {
+    // 在Vercel环境中，可以通过Authorization Header来保护Cron Job
+    const authHeader = req.headers.authorization;
+    if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+      return res.status(401).send('Unauthorized');
     }
-}
+
+    // 1. 执行用户状态重置
+    await resetUserStates();
+
+    // 2. 生成统计信息
+    const users = await db.getUsers();
+    let statsText = generateStatisticsText(users);
+
+    // 3. 获取并附加读经计划
+    const plan = await getReadingPlan();
+    if (plan) {
+      statsText += `
+今日读经计划：${plan}`;
+    }
+
+    // 4. (可选) 自动发送通知
+    // 如果需要，可以在这里调用notification API
+    // 例如：await fetch(`${process.env.VERCEL_URL}/api/notification`, ...)
+
+    return res.status(200).send(`Cron job executed successfully at ${new Date().toISOString()}
+Statistics:
+${statsText}`);
+
+  } catch (error) {
+    console.error('Cron job failed:', error);
+    return res.status(500).send('Cron job failed');
+  }
+};
+
+module.exports.config = {
+  runtime: 'nodejs',
+};

@@ -1,5 +1,7 @@
+/* eslint-disable no-undef */
 // /api/notification.js - 消息推送API
-import { generateStatisticsText } from './_lib/utils.js';
+
+const { generateStatisticsText } = require('./_lib/utils.js');
 
 // 统一的消息推送服务
 class NotificationService {
@@ -67,21 +69,40 @@ class NotificationService {
     }
 }
 
-export async function POST(request) {
-    try {
-        const { channel, message } = await request.json();
+// Vercel Serverless Function for notification
+module.exports = async (req, res) => {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-        if (!channel || !message) {
-            return new Response(JSON.stringify({ error: '缺少channel或message参数' }), { status: 400 });
-        }
+  // Handle preflight request
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
 
-        const notificationService = new NotificationService();
-        await notificationService.send(channel, message);
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
-        return new Response(JSON.stringify({ success: true, message: `消息已发送到 ${channel}` }), { status: 200 });
+  try {
+    const { channel, message } = req.body;
 
-    } catch (error) {
-        console.error(`发送到 ${channel} 失败:`, error);
-        return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+    if (!channel || !message) {
+      return res.status(400).json({ error: '缺少channel或message参数' });
     }
-}
+
+    const notificationService = new NotificationService();
+    await notificationService.send(channel, message);
+
+    return res.status(200).json({ success: true, message: `消息已发送到 ${channel}` });
+  } catch (error) {
+    console.error(`发送到 ${channel} 失败:`, error);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports.config = {
+  runtime: 'nodejs',
+};
