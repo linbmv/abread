@@ -1,6 +1,8 @@
 
 // /api/_lib/db.js - 数据存储逻辑 (使用Vercel Edge Config + GitHub Gist备用方案)
-import { get, set } from '@vercel/edge-config';
+import { createClient } from '@vercel/edge-config';
+
+const { get, set } = createClient(process.env.EDGE_CONFIG);
 
 // Edge Config键名常量
 const USERS_KEY = 'bible-reading-users';
