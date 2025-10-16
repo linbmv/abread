@@ -330,15 +330,18 @@ async function sendStatistics() {
       showSuccess('统计信息已复制到剪贴板')
     }
 
-    // 尝试发送到后端（如WhatsApp等）
+    // 尝试发送到后端通知服务
     try {
-      // 直接通过 notification 服务发送到 WhatsApp
-      await apiService.sendStatisticsToChannel(stats, 'whatsapp')
-      showSuccess('统计信息已发送到 WhatsApp')
+      // 获取要发送到的渠道（从环境或用户选择）
+      // 如果要发送到特定渠道，可以在这里指定
+      const channel = 'whatsapp'; // 可以更改为 'bark', 'telegram', 'webhook'
+
+      await apiService.sendStatisticsToChannel(stats, channel)
+      showSuccess(`统计信息已发送到 ${channel}`)
     } catch (sendError) {
-      console.warn('发送统计到 WhatsApp 失败:', sendError)
+      console.warn(`发送统计到指定渠道失败:`, sendError)
       // 如果发送失败，至少用户已将信息复制到剪贴板
-      showSuccess('统计信息已复制到剪贴板（WhatsApp 发送失败）')
+      showSuccess('统计信息已复制到剪贴板（发送到通知渠道失败）')
     }
   } catch (error) {
     showError(error.message)
