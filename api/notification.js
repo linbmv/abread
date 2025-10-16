@@ -70,7 +70,20 @@ class NotificationService {
             throw new Error('Bark URL未配置');
         }
         // Bark的URL通常是 https://api.day.app/your_device_key/推送内容
-        await fetch(`${barkUrl}/${encodeURIComponent(message)}`);
+        const fullUrl = barkUrl.endsWith('/') ?
+            `${barkUrl}${encodeURIComponent(message)}` :
+            `${barkUrl}/${encodeURIComponent(message)}`;
+
+        const response = await fetch(fullUrl, {
+            method: 'GET'
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`发送 Bark 消息失败: HTTP ${response.status} - ${errorText}`);
+        }
+
+        return response;
     }
 
     // 发送到通用Webhook
