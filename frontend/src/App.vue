@@ -332,16 +332,23 @@ async function sendStatistics() {
 
     // 尝试发送到后端通知服务
     try {
-      // 获取要发送到的渠道（从环境或用户选择）
-      // 如果要发送到特定渠道，可以在这里指定
-      const channel = 'whatsapp'; // 可以更改为 'bark', 'telegram', 'webhook'
+      // 根据环境变量配置选择通知渠道
+      // 优先级: Bark -> Telegram -> WhatsApp -> Webhook
+      let channel = null;
+
+      if (process.env.VUE_APP_NOTIFICATION_CHANNEL) {
+        channel = process.env.VUE_APP_NOTIFICATION_CHANNEL;
+      } else {
+        // 可以根据配置决定默认渠道
+        channel = 'bark'; // 临时改为bark进行测试
+      }
 
       await apiService.sendStatisticsToChannel(stats, channel)
       showSuccess(`统计信息已发送到 ${channel}`)
     } catch (sendError) {
-      console.warn(`发送统计到指定渠道失败:`, sendError)
+      console.error(`发送统计到 ${channel} 失败:`, sendError)
       // 如果发送失败，至少用户已将信息复制到剪贴板
-      showSuccess('统计信息已复制到剪贴板（发送到通知渠道失败）')
+      showSuccess(`统计信息已复制到剪贴板（发送到${channel}失败）`)
     }
   } catch (error) {
     showError(error.message)
