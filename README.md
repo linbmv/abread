@@ -61,12 +61,48 @@ bible-reading-tracker/
 
 ## ⚙️ 环境变量配置
 
-如果使用GitHub Gist作为备用存储，需要配置以下环境变量：
+### 基础配置
+
+项目需要以下基础环境变量：
+
+```
+APP_PASSWORD=your_app_password  # 应用访问密码
+TIMEZONE=Asia/Shanghai          # 时区设置（默认：Asia/Shanghai）
+MAX_UNREAD_DAYS=7               # 最大未读天数（默认：7）
+CRON_SECRET=your_cron_secret    # Cron任务安全密钥（用于保护定时任务）
+```
+
+如果使用GitHub Gist作为备用存储，还需要配置：
 
 ```
 GIST_ID=your_gist_id_here
 GIST_TOKEN=your_github_token_here
 ```
+
+### 可选的通知服务配置
+
+- **WhatsApp Business Cloud API**:
+  ```
+  WHATSAPP_PHONE_NUMBER_ID=your_whatsapp_phone_number_id
+  WHATSAPP_ACCESS_TOKEN=your_whatsapp_access_token
+  WHATSAPP_RECIPIENT_PHONE=recipient_phone_number
+  ```
+
+- **Telegram Bot**:
+  ```
+  TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+  TELEGRAM_CHAT_ID=your_telegram_chat_id
+  ```
+
+- **Bark (iOS)**:
+  ```
+  BARK_URL=your_bark_url
+  ```
+
+- **通用 Webhook**:
+  ```
+  WEBHOOK_URL=your_webhook_url
+  ```
 
 ## 🚀 快速开始
 

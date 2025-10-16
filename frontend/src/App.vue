@@ -332,11 +332,13 @@ async function sendStatistics() {
 
     // 尝试发送到后端（如WhatsApp等）
     try {
-      await apiService.sendStatistics(stats)
-      showSuccess('统计信息已发送')
+      // 直接通过 notification 服务发送到 WhatsApp
+      await apiService.sendStatisticsToChannel(stats, 'whatsapp')
+      showSuccess('统计信息已发送到 WhatsApp')
     } catch (sendError) {
-      console.warn('发送统计失败:', sendError)
-      showError('发送统计失败，但已复制到剪贴板')
+      console.warn('发送统计到 WhatsApp 失败:', sendError)
+      // 如果发送失败，至少用户已将信息复制到剪贴板
+      showSuccess('统计信息已复制到剪贴板（WhatsApp 发送失败）')
     }
   } catch (error) {
     showError(error.message)

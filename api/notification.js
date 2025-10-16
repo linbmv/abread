@@ -20,16 +20,47 @@ class NotificationService {
         });
     }
 
-    // 发送到WhatsApp (通过特定服务，此处为示例)
+    // 发送到WhatsApp (通过WhatsApp Business Cloud API)
     async sendWhatsApp(message) {
-        // WhatsApp Business API的实现会更复杂，这里仅作演示
-        console.log('正在推送到WhatsApp:', message);
-        // 实际应调用WhatsApp Business API
-        if (!process.env.WHATSAPP_API_URL) {
-             console.warn('WhatsApp API URL未配置');
-             return;
+        const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID; // WhatsApp Business Account Phone Number ID
+        const accessToken = process.env.WHATSAPP_ACCESS_TOKEN; // WhatsApp Business API Access Token
+        const recipientPhone = process.env.WHATSAPP_RECIPIENT_PHONE; // 接收消息的手机号
+
+        if (!phoneNumberId || !accessToken || !recipientPhone) {
+            console.warn('WhatsApp 配置未完全设置 (WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_ACCESS_TOKEN, WHATSAPP_RECIPIENT_PHONE)');
+            return;
         }
-        // 示例: await fetch(process.env.WHATSAPP_API_URL, ...);
+
+        try {
+            // WhatsApp Business Cloud API 的端点
+            const url = `https://graph.facebook.com/v18.0/${phoneNumberId}/messages`;
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    messaging_product: 'whatsapp',
+                    to: recipientPhone, // 格式: 1234567890 (不带+号)
+                    type: 'text',
+                    text: {
+                        body: message
+                    }
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`发送 WhatsApp 消息失败: ${errorData.error?.message || response.statusText}`);
+            }
+
+            console.log('WhatsApp 消息发送成功');
+        } catch (error) {
+            console.error('发送 WhatsApp 消息失败:', error);
+            throw error;
+        }
     }
 
     // 发送到Bark

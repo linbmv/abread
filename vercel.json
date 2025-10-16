@@ -14,6 +14,14 @@
       "use": "@vercel/node"
     },
     {
+      "src": "api/notification.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/statistics-to-channel.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {

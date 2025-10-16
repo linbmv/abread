@@ -12,7 +12,8 @@
       "Bash(npm install dotenv cors node-cron)",
       "Bash(find:*)",
       "Read(//c/Users/LinHome/Documents/Github/**)",
-      "Bash(npm run build-frontend)"
+      "Bash(npm run build-frontend)",
+      "Bash(npm install baileys)"
     ],
     "deny": [],
     "ask": []
