@@ -37,13 +37,25 @@ module.exports = async (req, res) => {
 
     // 创建通知服务实例并发送
     const notificationService = new NotificationService();
-    await notificationService.send(channel, messageToSend);
 
-    return res.status(200).json({
-      success: true,
-      message: `统计信息已成功发送到 ${channel}`,
-      channel: channel
-    });
+    // 如果channel为'all'，则发送到所有已配置的渠道
+    let result;
+    if (channel === 'all' || channel === 'all_channels') {
+      result = await notificationService.sendToAllChannels(messageToSend);
+      return res.status(200).json({
+        success: true,
+        message: result.message,
+        channel: channel,
+        details: result
+      });
+    } else {
+      await notificationService.send(channel, messageToSend);
+      return res.status(200).json({
+        success: true,
+        message: `统计信息已成功发送到 ${channel}`,
+        channel: channel
+      });
+    }
   } catch (error) {
     console.error(`发送统计信息到 ${channel} 失败:`, error);
     return res.status(500).json({ error: `发送统计信息失败: ${error.message}` });

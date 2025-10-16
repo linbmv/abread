@@ -216,9 +216,160 @@ export default async function handler(req, res) {
           // 使用提供的自定义统计信息或生成的统计信息
           const messageToSend = customStats || statsText;
 
-          // 实现通知发送逻辑，而不直接导入NotificationService类
           // 根据channel类型发送消息
-          if (channel === 'whatsapp') {
+          if (channel === 'all' || channel === 'all_channels') {
+            // 发送到所有已配置的渠道
+            const results = [];
+            let successCount = 0;
+
+            // 尝试发送到Telegram
+            if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID) {
+              try {
+                const token = process.env.TELEGRAM_BOT_TOKEN;
+                const chatId = process.env.TELEGRAM_CHAT_ID;
+                const url = `https://api.telegram.org/bot${token}/sendMessage`;
+                const response = await fetch(url, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ chat_id: chatId, text: messageToSend }),
+                });
+                if (!response.ok) {
+                  throw new Error('发送 Telegram 消息失败');
+                }
+                results.push({ channel: 'telegram', status: 'success' });
+                successCount++;
+                console.log('Telegram 消息发送成功');
+              } catch (error) {
+                results.push({ channel: 'telegram', status: 'failed', error: error.message });
+                console.error('发送 Telegram 消息失败:', error);
+              }
+            }
+
+            // 尝试发送到WhatsApp
+            if (process.env.WHATSAPP_PHONE_NUMBER_ID && process.env.WHATSAPP_ACCESS_TOKEN && process.env.WHATSAPP_RECIPIENT_PHONE) {
+              try {
+                const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+                const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
+                const recipientPhone = process.env.WHATSAPP_RECIPIENT_PHONE;
+
+                const url = `https://graph.facebook.com/v18.0/${phoneNumberId}/messages`;
+                const response = await fetch(url, {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    messaging_product: 'whatsapp',
+                    to: recipientPhone,
+                    type: 'text',
+                    text: {
+                      body: messageToSend
+                    }
+                  })
+                });
+
+                if (!response.ok) {
+                  const errorData = await response.json();
+                  throw new Error(`发送 WhatsApp 消息失败: ${errorData.error?.message || response.statusText}`);
+                }
+                results.push({ channel: 'whatsapp', status: 'success' });
+                successCount++;
+                console.log('WhatsApp 消息发送成功');
+              } catch (error) {
+                results.push({ channel: 'whatsapp', status: 'failed', error: error.message });
+                console.error('发送 WhatsApp 消息失败:', error);
+              }
+            }
+
+            // 尝试发送到Bark
+            if (process.env.BARK_URL) {
+              try {
+                const barkUrl = process.env.BARK_URL;
+
+                // 尝试多种Bark URL格式
+                let fullUrl;
+                if (barkUrl.endsWith('/')) {
+                  fullUrl = `${barkUrl}${encodeURIComponent(messageToSend)}`;
+                } else {
+                  fullUrl = `${barkUrl}/${encodeURIComponent(messageToSend)}`;
+                }
+
+                console.log('Bark请求URL:', fullUrl);
+
+                const response = await fetch(fullUrl, {
+                  method: 'GET',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  }
+                });
+
+                console.log('Bark响应状态:', response.status);
+                console.log('Bark响应头:', response.headers);
+
+                if (!response.ok) {
+                  const errorText = await response.text();
+                  console.error('Bark响应错误文本:', errorText);
+                  throw new Error(`发送 Bark 消息失败: HTTP ${response.status} - ${errorText}`);
+                }
+
+                // 尝试获取响应体
+                try {
+                  const responseData = await response.json();
+                  console.log('Bark响应数据:', responseData);
+                } catch (e) {
+                  // 如果响应不是JSON格式，可能是成功了
+                  console.log('Bark响应非JSON格式，但请求成功');
+                }
+
+                results.push({ channel: 'bark', status: 'success' });
+                successCount++;
+                console.log('Bark 消息发送成功');
+              } catch (error) {
+                results.push({ channel: 'bark', status: 'failed', error: error.message });
+                console.error('发送 Bark 消息失败:', error);
+              }
+            }
+
+            // 尝试发送到Webhook
+            if (process.env.WEBHOOK_URL) {
+              try {
+                const webhookUrl = process.env.WEBHOOK_URL;
+                const response = await fetch(webhookUrl, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ content: messageToSend }),
+                });
+                if (!response.ok) {
+                  throw new Error('发送 Webhook 消息失败');
+                }
+                results.push({ channel: 'webhook', status: 'success' });
+                successCount++;
+                console.log('Webhook 消息发送成功');
+              } catch (error) {
+                results.push({ channel: 'webhook', status: 'failed', error: error.message });
+                console.error('发送 Webhook 消息失败:', error);
+              }
+            }
+
+            if (results.length === 0) {
+              throw new Error('没有配置任何通知渠道');
+            }
+
+            console.log(`统计信息已尝试发送到 ${successCount}/${results.length} 个渠道`);
+
+            return res.status(200).json({
+              success: true,
+              message: `统计信息已尝试发送到 ${successCount}/${results.length} 个渠道`,
+              channel: channel,
+              details: {
+                successful: results.filter(r => r.status === 'success').map(r => r.channel),
+                failed: results.filter(r => r.status === 'failed').map(r => ({ channel: r.channel, error: r.error })),
+                total: results.length,
+                successCount: successCount
+              }
+            });
+          } else if (channel === 'whatsapp') {
             // WhatsApp Business Cloud API
             const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
             const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;

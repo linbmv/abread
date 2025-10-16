@@ -98,6 +98,56 @@ class NotificationService {
         }
         return adapters[channel](message);
     }
+
+    // 发送到所有已配置的渠道
+    async sendToAllChannels(message) {
+        const channels = [];
+
+        // 检查并收集所有已配置的渠道
+        if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID) {
+            channels.push('telegram');
+        }
+
+        if (process.env.WHATSAPP_PHONE_NUMBER_ID && process.env.WHATSAPP_ACCESS_TOKEN && process.env.WHATSAPP_RECIPIENT_PHONE) {
+            channels.push('whatsapp');
+        }
+
+        if (process.env.BARK_URL) {
+            channels.push('bark');
+        }
+
+        if (process.env.WEBHOOK_URL) {
+            channels.push('webhook');
+        }
+
+        if (channels.length === 0) {
+            throw new Error('没有配置任何通知渠道');
+        }
+
+        // 并行发送到所有已配置的渠道
+        const results = await Promise.allSettled(
+            channels.map(channel => this.send(channel, message))
+        );
+
+        // 记录结果
+        const successful = [];
+        const failed = [];
+
+        results.forEach((result, index) => {
+            if (result.status === 'fulfilled') {
+                successful.push(channels[index]);
+            } else {
+                failed.push({ channel: channels[index], error: result.reason });
+            }
+        });
+
+        return {
+            successful,
+            failed,
+            total: channels.length,
+            message: `成功发送到 ${successful.length}/${channels.length} 个渠道`
+        };
+    }
 }
 
 // Vercel Serverless Function for notification
@@ -120,16 +170,30 @@ module.exports = async (req, res) => {
   try {
     const { channel, message } = req.body;
 
-    if (!channel || !message) {
-      return res.status(400).json({ error: '缺少channel或message参数' });
+    if (!message) {
+      return res.status(400).json({ error: '缺少message参数' });
     }
 
     const notificationService = new NotificationService();
-    await notificationService.send(channel, message);
 
-    return res.status(200).json({ success: true, message: `消息已发送到 ${channel}` });
+    // 如果channel为'all'，则发送到所有已配置的渠道
+    let result;
+    if (channel === 'all' || channel === 'all_channels') {
+      result = await notificationService.sendToAllChannels(message);
+      return res.status(200).json({
+        success: true,
+        message: result.message,
+        details: result
+      });
+    } else {
+      if (!channel) {
+        return res.status(400).json({ error: '缺少channel参数' });
+      }
+      await notificationService.send(channel, message);
+      return res.status(200).json({ success: true, message: `消息已发送到 ${channel}` });
+    }
   } catch (error) {
-    console.error(`发送到 ${channel} 失败:`, error);
+    console.error(`发送通知失败:`, error);
     return res.status(500).json({ error: error.message });
   }
 };
