@@ -206,7 +206,7 @@ export default async function handler(req, res) {
       // 验证是否来自 Vercel Cron
       const authHeader = req.headers['authorization'];
       console.log('Cron认证头:', authHeader ? '存在' : '不存在');
-      if (authHeader !== `Bearer ${process.env.CRON_AUTH_TOKEN}`) {
+      if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
         console.log('Cron认证失败');
         return res.status(401).json({ error: '未授权的访问' });
       }

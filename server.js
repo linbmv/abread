@@ -5,7 +5,7 @@ const path = require('path');
 const cron = require('node-cron');
 
 // 根据环境选择数据库实现
-const isVercel = process.env.VERCEL || process.env.EDGE_CONFIG; // Vercel环境变量
+const isVercel = process.env.VERCEL_ENV || process.env.VERCEL || process.env.EDGE_CONFIG; // Vercel环境变量
 let dbModule;
 if (isVercel) {
   // Vercel环境使用Edge Config
@@ -169,10 +169,16 @@ async function runCronJob() {
     return users; // Return for testing purposes
 }
 
-// 每天凌晨4点执行
-cron.schedule('0 4 * * *', runCronJob, {
-    timezone: process.env.TIMEZONE || 'Asia/Shanghai'
-});
+// 只在非 Vercel 环境中启动本地定时任务（避免重复执行）
+if (!process.env.VERCEL_ENV) {
+    // 每天凌晨4点执行
+    cron.schedule('0 4 * * *', runCronJob, {
+        timezone: process.env.TIMEZONE || 'Asia/Shanghai'
+    });
+    console.log('Local cron job scheduled for 04:00 daily');
+} else {
+    console.log('Running on Vercel, using Vercel Cron instead of local cron');
+}
 
 // Test endpoint to manually trigger cron job for testing
 app.post('/api/test-cron', async (req, res) => {

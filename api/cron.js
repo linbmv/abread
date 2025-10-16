@@ -5,7 +5,7 @@ import { generateStatisticsText } from '../backend/utils.js';
 export default async function handler(req, res) {
   // 验证是否来自 Vercel Cron
   const authHeader = req.headers['authorization'];
-  if (authHeader !== `Bearer ${process.env.CRON_AUTH_TOKEN}`) {
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return res.status(401).json({ error: '未授权的访问' });
   }
 
