@@ -274,10 +274,42 @@ export default async function handler(req, res) {
             if (!barkUrl) {
               throw new Error('Bark URL未配置');
             }
-            const response = await fetch(`${barkUrl}/${encodeURIComponent(messageToSend)}`);
-            if (!response.ok) {
-              throw new Error('发送 Bark 消息失败');
+
+            // 尝试多种Bark URL格式
+            let fullUrl;
+            if (barkUrl.endsWith('/')) {
+              fullUrl = `${barkUrl}${encodeURIComponent(messageToSend)}`;
+            } else {
+              fullUrl = `${barkUrl}/${encodeURIComponent(messageToSend)}`;
             }
+
+            console.log('Bark请求URL:', fullUrl);
+
+            const response = await fetch(fullUrl, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+              }
+            });
+
+            console.log('Bark响应状态:', response.status);
+            console.log('Bark响应头:', response.headers);
+
+            if (!response.ok) {
+              const errorText = await response.text();
+              console.error('Bark响应错误文本:', errorText);
+              throw new Error(`发送 Bark 消息失败: HTTP ${response.status} - ${errorText}`);
+            }
+
+            // 尝试获取响应体
+            try {
+              const responseData = await response.json();
+              console.log('Bark响应数据:', responseData);
+            } catch (e) {
+              // 如果响应不是JSON格式，可能是成功了
+              console.log('Bark响应非JSON格式，但请求成功');
+            }
+
             console.log('Bark 消息发送成功');
           } else if (channel === 'webhook') {
             // Webhook
