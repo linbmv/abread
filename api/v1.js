@@ -435,10 +435,8 @@ export default async function handler(req, res) {
             console.log('Bark请求URL:', fullUrl);
 
             const response = await fetch(fullUrl, {
-              method: 'GET',
-              headers: {
-                'Content-Type': 'application/json',
-              }
+              method: 'GET'
+              // 移除Content-Type，GET请求不需要这个头部
             });
 
             console.log('Bark响应状态:', response.status);
