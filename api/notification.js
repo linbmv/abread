@@ -3,62 +3,50 @@
 
 const { generateStatisticsText } = require('./_lib/utils.js');
 
+// 导入Baileys发送器
+let WhatsAppSender;
+try {
+    WhatsAppSender = require('./whatsapp-sender');
+} catch (error) {
+    console.log('Baileys模块未找到，跳过WhatsApp Baileys支持');
+}
+
 // 统一的消息推送服务
 class NotificationService {
-    // 发送到Telegram
-    async sendTelegram(message) {
-        const token = process.env.TELEGRAM_BOT_TOKEN;
-        const chatId = process.env.TELEGRAM_CHAT_ID;
-        if (!token || !chatId) {
-            throw new Error('Telegram token或chat ID未配置');
-        }
-        const url = `https://api.telegram.org/bot${token}/sendMessage`;
-        await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: chatId, text: message }),
-        });
-    }
+    // 通过Baileys发送WhatsApp消息（仅发送）
+    async sendWhatsAppBaileys(message) {
+        const recipientPhone = process.env.WHATSAPP_BAILEYS_RECIPIENT_PHONE;
+        const baileysEnabled = process.env.WHATSAPP_BAILEYS_ENABLED === 'true';
 
-    // 发送到WhatsApp (通过WhatsApp Business Cloud API)
-    async sendWhatsApp(message) {
-        const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID; // WhatsApp Business Account Phone Number ID
-        const accessToken = process.env.WHATSAPP_ACCESS_TOKEN; // WhatsApp Business API Access Token
-        const recipientPhone = process.env.WHATSAPP_RECIPIENT_PHONE; // 接收消息的手机号
-
-        if (!phoneNumberId || !accessToken || !recipientPhone) {
-            console.warn('WhatsApp 配置未完全设置 (WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_ACCESS_TOKEN, WHATSAPP_RECIPIENT_PHONE)');
+        if (!baileysEnabled || !recipientPhone) {
+            console.warn('WhatsApp Baileys 配置未设置 (WHATSAPP_BAILEYS_ENABLED=true, WHATSAPP_BAILEYS_RECIPIENT_PHONE)');
             return;
         }
 
         try {
-            // WhatsApp Business Cloud API 的端点
-            const url = `https://graph.facebook.com/v18.0/${phoneNumberId}/messages`;
+            // 检查是否已安装Baileys模块
+            if (!WhatsAppSender) {
+                throw new Error('Baileys模块未安装或未找到');
+            }
 
-            const response = await fetch(url, {
+            // 发送消息的API端点
+            const response = await fetch('/api/whatsapp-sender', {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    messaging_product: 'whatsapp',
-                    to: recipientPhone, // 格式: 1234567890 (不带+号)
-                    type: 'text',
-                    text: {
-                        body: message
-                    }
+                    to: recipientPhone,
+                    message: message
                 })
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(`发送 WhatsApp 消息失败: ${errorData.error?.message || response.statusText}`);
+                throw new Error(`发送 WhatsApp Baileys 消息失败: ${errorData.error?.message || response.statusText}`);
             }
 
-            console.log('WhatsApp 消息发送成功');
+            console.log('WhatsApp Baileys 消息发送成功');
         } catch (error) {
-            console.error('发送 WhatsApp 消息失败:', error);
+            console.error('发送 WhatsApp Baileys 消息失败:', error);
             throw error;
         }
     }
@@ -101,8 +89,7 @@ class NotificationService {
 
     async send(channel, message) {
         const adapters = {
-            'telegram': this.sendTelegram,
-            'whatsapp': this.sendWhatsApp,
+            'whatsapp_baileys': this.sendWhatsAppBaileys,
             'bark': this.sendBark,
             'webhook': this.sendWebhook
         };
@@ -117,12 +104,8 @@ class NotificationService {
         const channels = [];
 
         // 检查并收集所有已配置的渠道
-        if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID) {
-            channels.push('telegram');
-        }
-
-        if (process.env.WHATSAPP_PHONE_NUMBER_ID && process.env.WHATSAPP_ACCESS_TOKEN && process.env.WHATSAPP_RECIPIENT_PHONE) {
-            channels.push('whatsapp');
+        if (process.env.WHATSAPP_BAILEYS_ENABLED === 'true' && process.env.WHATSAPP_BAILEYS_RECIPIENT_PHONE) {
+            channels.push('whatsapp_baileys');
         }
 
         if (process.env.BARK_URL) {

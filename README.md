@@ -81,17 +81,11 @@ GIST_TOKEN=your_github_token_here
 
 ### 可选的通知服务配置
 
-- **WhatsApp Business Cloud API**:
+- **WhatsApp Baileys (直接发送，需要首次登录)**:
   ```
-  WHATSAPP_PHONE_NUMBER_ID=your_whatsapp_phone_number_id
-  WHATSAPP_ACCESS_TOKEN=your_whatsapp_access_token
-  WHATSAPP_RECIPIENT_PHONE=recipient_phone_number
-  ```
-
-- **Telegram Bot**:
-  ```
-  TELEGRAM_BOT_TOKEN=your_telegram_bot_token
-  TELEGRAM_CHAT_ID=your_telegram_chat_id
+  WHATSAPP_BAILEYS_ENABLED=false                    # 启用Baileys发送功能
+  WHATSAPP_BAILEYS_RECIPIENT_PHONE=recipient_phone_number  # 接收消息的手机号
+  WHATSAPP_BAILEYS_AUTO_INIT=false                 # 是否自动初始化连接
   ```
 
 - **Bark (iOS)**:
