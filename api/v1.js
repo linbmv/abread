@@ -216,13 +216,88 @@ export default async function handler(req, res) {
           // 使用提供的自定义统计信息或生成的统计信息
           const messageToSend = customStats || statsText;
 
-          // 动态导入并创建通知服务实例
-          const notificationModule = await import('./notification.js');
-          const NotificationService = notificationModule.default || notificationModule;
-          const notificationService = new NotificationService();
+          // 实现通知发送逻辑，而不直接导入NotificationService类
+          // 根据channel类型发送消息
+          if (channel === 'whatsapp') {
+            // WhatsApp Business Cloud API
+            const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+            const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
+            const recipientPhone = process.env.WHATSAPP_RECIPIENT_PHONE;
 
-          // 发送通知
-          await notificationService.send(channel, messageToSend);
+            if (!phoneNumberId || !accessToken || !recipientPhone) {
+              console.warn('WhatsApp 配置未完全设置 (WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_ACCESS_TOKEN, WHATSAPP_RECIPIENT_PHONE)');
+              throw new Error('WhatsApp 配置不完整');
+            }
+
+            const url = `https://graph.facebook.com/v18.0/${phoneNumberId}/messages`;
+            const response = await fetch(url, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                messaging_product: 'whatsapp',
+                to: recipientPhone,
+                type: 'text',
+                text: {
+                  body: messageToSend
+                }
+              })
+            });
+
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(`发送 WhatsApp 消息失败: ${errorData.error?.message || response.statusText}`);
+            }
+            console.log('WhatsApp 消息发送成功');
+          } else if (channel === 'telegram') {
+            // Telegram
+            const token = process.env.TELEGRAM_BOT_TOKEN;
+            const chatId = process.env.TELEGRAM_CHAT_ID;
+            if (!token || !chatId) {
+              throw new Error('Telegram token或chat ID未配置');
+            }
+            const url = `https://api.telegram.org/bot${token}/sendMessage`;
+            const response = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ chat_id: chatId, text: messageToSend }),
+            });
+            if (!response.ok) {
+              throw new Error('发送 Telegram 消息失败');
+            }
+            console.log('Telegram 消息发送成功');
+          } else if (channel === 'bark') {
+            // Bark
+            const barkUrl = process.env.BARK_URL;
+            if (!barkUrl) {
+              throw new Error('Bark URL未配置');
+            }
+            const response = await fetch(`${barkUrl}/${encodeURIComponent(messageToSend)}`);
+            if (!response.ok) {
+              throw new Error('发送 Bark 消息失败');
+            }
+            console.log('Bark 消息发送成功');
+          } else if (channel === 'webhook') {
+            // Webhook
+            const webhookUrl = process.env.WEBHOOK_URL;
+            if (!webhookUrl) {
+              throw new Error('Webhook URL未配置');
+            }
+            const response = await fetch(webhookUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ content: messageToSend }),
+            });
+            if (!response.ok) {
+              throw new Error('发送 Webhook 消息失败');
+            }
+            console.log('Webhook 消息发送成功');
+          } else {
+            throw new Error(`不支持的消息渠道: ${channel}`);
+          }
+
 
           console.log(`统计信息已成功发送到 ${channel}`);
           return res.status(200).json({
