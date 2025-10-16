@@ -195,6 +195,49 @@ export default async function handler(req, res) {
         console.log('统计请求 - 错误的HTTP方法或路径:', req.method, apiParts);
         return res.status(405).json({ error: '方法不允许' });
       }
+    } else if (apiParts[0] === 'statistics-to-channel') {
+      console.log('处理统计到渠道请求');
+      // 处理发送统计到特定渠道的请求
+      if (req.method === 'POST') {
+        const { channel, customStats } = req.body;
+
+        if (!channel) {
+          console.log('缺少 channel 参数');
+          return res.status(400).json({ error: '缺少 channel 参数' });
+        }
+
+        try {
+          // 获取当前用户列表以生成最新的统计数据
+          const users = await dbModule.getUsers();
+          const utilsModule = await import('../backend/utils.js');
+          const { generateStatisticsText } = utilsModule;
+          const statsText = generateStatisticsText(users);
+
+          // 使用提供的自定义统计信息或生成的统计信息
+          const messageToSend = customStats || statsText;
+
+          // 动态导入并创建通知服务实例
+          const notificationModule = await import('./notification.js');
+          const NotificationService = notificationModule.default || notificationModule;
+          const notificationService = new NotificationService();
+
+          // 发送通知
+          await notificationService.send(channel, messageToSend);
+
+          console.log(`统计信息已成功发送到 ${channel}`);
+          return res.status(200).json({
+            success: true,
+            message: `统计信息已成功发送到 ${channel}`,
+            channel: channel
+          });
+        } catch (error) {
+          console.error(`发送统计信息到 ${channel} 失败:`, error);
+          return res.status(500).json({ error: `发送统计信息失败: ${error.message}` });
+        }
+      } else {
+        console.log('统计到渠道请求 - 错误的HTTP方法:', req.method);
+        return res.status(405).json({ error: '方法不允许' });
+      }
     } else if (apiParts[0] === 'cron') {
       console.log('处理定时任务请求');
       // 处理定时任务
