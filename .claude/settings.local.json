@@ -13,7 +13,8 @@
       "Bash(find:*)",
       "Read(//c/Users/LinHome/Documents/Github/**)",
       "Bash(npm run build-frontend)",
-      "Bash(npm install baileys)"
+      "Bash(npm install baileys)",
+      "Bash(node -e \"console.log(JSON.parse(require(''fs'').readFileSync(''vercel.json'', ''utf8'')));\")"
     ],
     "deny": [],
     "ask": []

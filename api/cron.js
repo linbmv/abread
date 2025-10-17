@@ -2,6 +2,9 @@
 import { db } from './_lib/db.js';
 
 export default async function handler(req, res) {
+  // Vercel Cron 通常使用 GET 请求
+  console.log(`Cron handler called with method: ${req.method}, URL: ${req.url}`);
+
   // 验证是否来自 Vercel Cron
   const authHeader = req.headers['authorization'];
   const expectedAuth = `Bearer ${process.env.CRON_SECRET}`;
@@ -9,6 +12,11 @@ export default async function handler(req, res) {
   if (!process.env.CRON_SECRET) {
     console.error('CRON_SECRET 环境变量未设置');
     return res.status(500).json({ error: '服务器配置错误：CRON_SECRET 未设置' });
+  }
+
+  if (!authHeader) {
+    console.error('缺少 Authorization 头');
+    return res.status(401).json({ error: '缺少 Authorization 头' });
   }
 
   if (authHeader !== expectedAuth) {
