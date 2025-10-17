@@ -144,29 +144,53 @@ app.post('/api/verify-password', async (req, res) => {
 
 // --- 定时任务 ---
 async function runCronJob() {
-    console.log('Running cron job at', new Date().toISOString());
-    const users = await dbModule.getUsers();
-    const config = await dbModule.getConfig();
-    const maxUnreadDays = config.maxUnreadDays || 7;
+    try {
+        console.log('开始执行定时任务 at', new Date().toISOString());
 
-    for (const user of users) {
-        if (!user.frozen) {
-            if (!user.isRead) {
-                user.unreadDays++;
-                if (user.unreadDays >= maxUnreadDays) {
-                    user.frozen = true;
-                    user.unreadDays = maxUnreadDays;
+        // 获取所有用户和配置
+        const users = await dbModule.getUsers();
+        console.log(`获取到 ${users.length} 个用户`);
+
+        const config = await dbModule.getConfig();
+        const maxUnreadDays = config.maxUnreadDays || 7;
+        console.log(`最大未读天数配置: ${maxUnreadDays}`);
+
+        let processedUsers = 0;
+        for (const user of users) {
+            if (!user.frozen) {
+                if (!user.isRead) {
+                    user.unreadDays++;
+                    if (user.unreadDays >= maxUnreadDays) {
+                        user.frozen = true;
+                        user.unreadDays = maxUnreadDays;
+                        console.log(`用户 ${user.name} 已被冻结，未读天数: ${user.unreadDays}`);
+                    } else {
+                        console.log(`用户 ${user.name} 未读天数增加到: ${user.unreadDays}`);
+                    }
+                } else {
+                    user.isRead = false;
+                    user.unreadDays = 1;
+                    console.log(`用户 ${user.name} 状态重置为未读`);
                 }
+                await dbModule.updateUser(user.id, {
+                    isRead: user.isRead,
+                    unreadDays: user.unreadDays,
+                    frozen: user.frozen
+                });
+                processedUsers++;
             } else {
-                user.isRead = false;
-                user.unreadDays = 1;
+                console.log(`用户 ${user.name} 已被冻结，跳过处理`);
             }
-            await dbModule.updateUser(user.id, { isRead: user.isRead, unreadDays: user.unreadDays, frozen: user.frozen });
         }
+
+        await dbModule.updateLastResetTime();
+        console.log(`定时任务完成。处理了 ${processedUsers} 个用户，总共 ${users.length} 个用户。`);
+
+        return users; // Return for testing purposes
+    } catch (error) {
+        console.error('定时任务执行失败:', error);
+        throw error;
     }
-    await dbModule.updateLastResetTime();
-    console.log('Cron job finished.');
-    return users; // Return for testing purposes
 }
 
 // 只在非 Vercel 环境中启动本地定时任务（避免重复执行）
