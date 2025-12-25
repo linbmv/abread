@@ -430,20 +430,22 @@ h1 {
         -webkit-overflow-scrolling: touch;
     }
     .user-card {
-        flex: 0 0 auto;
-        min-width: 40px;
-        max-width: 80px;
+        flex: 0 0 80px;
+        width: 80px;
         margin: 0;
         padding: 4px;
         min-height: 25px;
-        font-size: 14px;
-        white-space: nowrap;
-        text-overflow: ellipsis;
+        font-size: 12px;
+        word-wrap: break-word;
+        word-break: break-all;
+        white-space: normal;
         user-select: none;
         display: flex;
         align-items: center;
         justify-content: center;
         transform-origin: center;
+        text-align: center;
+        line-height: 1.2;
     }
     .modal-content {
         width: 95%;
